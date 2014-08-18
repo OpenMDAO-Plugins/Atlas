@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.aero &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.aero</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Assembly</span>
+<span class="kn">from</span> <span class="nn">openmdao.main.datatypes.api</span> <span class="kn">import</span> <span class="n">Int</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Array</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">Thrust</span><span class="p">,</span> <span class="n">ActuatorDiskInducedVelocity</span><span class="p">,</span> <span class="n">LiftDrag</span>
+<span class="c"># from Atlas import VortexRing</span>
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">VortexRingC</span> <span class="k">as</span> <span class="n">VortexRing</span>  <span class="c"># use cython compiled version</span>
+
+
+<span class="k">class</span> <span class="nc">Aero</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
+<div class="viewcode-block" id="Aero"><a class="viewcode-back" href="../../srcdocs.html#Atlas.aero.Aero">[docs]</a>    <span class="c"># inputs</span>
+    <span class="n">b</span>     <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span>   <span class="n">desc</span><span class="o">=</span><span class="s">&quot;number of blades&quot;</span><span class="p">)</span>
+    <span class="n">R</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor radius&#39;</span><span class="p">)</span>
+    <span class="n">Ns</span>    <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span>   <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of elements&#39;</span><span class="p">)</span>
+    <span class="n">yN</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;node locations&#39;</span><span class="p">)</span>
+    <span class="n">dr</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&quot;length of each element&quot;</span><span class="p">)</span>
+    <span class="n">r</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&quot;radial location of each element&quot;</span><span class="p">)</span>
+    <span class="n">h</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&quot;height of rotor&quot;</span><span class="p">)</span>
+
+    <span class="n">ycmax</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">)</span>
+
+    <span class="n">rho</span>   <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air density&#39;</span><span class="p">)</span>
+    <span class="n">visc</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air viscosity&#39;</span><span class="p">)</span>
+    <span class="n">vw</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;wind velocity&#39;</span><span class="p">)</span>
+    <span class="n">vc</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;vertical velocity&#39;</span><span class="p">)</span>
+    <span class="n">Omega</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
+
+    <span class="n">c</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;chord distribution&#39;</span><span class="p">)</span>
+    <span class="n">Cl</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;lift coefficient distribution&#39;</span><span class="p">)</span>
+    <span class="n">d</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;spar diameter distribution&#39;</span><span class="p">)</span>
+
+    <span class="n">yWire</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;location of wire attachment along span&#39;</span><span class="p">)</span>
+    <span class="n">zWire</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;depth of wire attachement&#39;</span><span class="p">)</span>
+    <span class="n">tWire</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;thickness of wire&#39;</span><span class="p">)</span>
+
+    <span class="n">Cm</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">xtU</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;fraction of laminar flow on the upper surface&#39;</span><span class="p">)</span>
+    <span class="n">xtL</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;fraction of laminar flow on the lower surface&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Aero.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.aero.Aero.configure">[docs]</a>        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">Thrust</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Ns&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yN&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;dr&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">,</span>         <span class="s">&#39;thrust.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;ycmax&#39;</span><span class="p">,</span>     <span class="s">&#39;thrust.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Cl&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span>         <span class="s">&#39;thrust.c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span>       <span class="s">&#39;thrust.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Omega&#39;</span><span class="p">,</span>     <span class="s">&#39;thrust.Omega&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;induced&#39;</span><span class="p">,</span> <span class="n">ActuatorDiskInducedVelocity</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Ns&#39;</span><span class="p">,</span>        <span class="s">&#39;induced.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;dr&#39;</span><span class="p">,</span>        <span class="s">&#39;induced.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;R&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.R&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;h&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.h&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;vc&#39;</span><span class="p">,</span>        <span class="s">&#39;induced.vc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span>       <span class="s">&#39;induced.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;thrust.dT&#39;</span><span class="p">,</span> <span class="s">&#39;induced.dT&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;lift_drag&#39;</span><span class="p">,</span> <span class="n">LiftDrag</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yN&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Ns&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;dr&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">,</span>          <span class="s">&#39;lift_drag.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span>        <span class="s">&#39;lift_drag.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;visc&#39;</span><span class="p">,</span>       <span class="s">&#39;lift_drag.visc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;vw&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.vw&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;vc&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.vc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Omega&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.Omega&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span>          <span class="s">&#39;lift_drag.c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Cl&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">,</span>          <span class="s">&#39;lift_drag.d&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yWire&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;zWire&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.zWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;tWire&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.tWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Cm&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.Cm&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;xtU&#39;</span><span class="p">,</span>        <span class="s">&#39;lift_drag.xtU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;xtL&#39;</span><span class="p">,</span>        <span class="s">&#39;lift_drag.xtL&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;induced.vi&#39;</span><span class="p">,</span> <span class="s">&#39;lift_drag.vi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;thrust.chordFrac&#39;</span><span class="p">,</span> <span class="s">&#39;lift_drag.chordFrac&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;induced.vi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.phi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.Re&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.Cd&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.Fblade&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;thrust&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;induced&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;lift_drag&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Aero2</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span></div></div>
+<div class="viewcode-block" id="Aero2"><a class="viewcode-back" href="../../srcdocs.html#Atlas.aero.Aero2">[docs]</a>    <span class="c"># inputs</span>
+    <span class="n">b</span>     <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span>   <span class="n">desc</span><span class="o">=</span><span class="s">&quot;number of blades&quot;</span><span class="p">)</span>
+    <span class="n">R</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor radius&#39;</span><span class="p">)</span>
+    <span class="n">Ns</span>    <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span>   <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of elements&#39;</span><span class="p">)</span>
+    <span class="n">yN</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;node locations&#39;</span><span class="p">)</span>
+    <span class="n">dr</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&quot;length of each element&quot;</span><span class="p">)</span>
+    <span class="n">r</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&quot;radial location of each element&quot;</span><span class="p">)</span>
+    <span class="n">h</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&quot;height of rotor&quot;</span><span class="p">)</span>
+
+    <span class="n">ycmax</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&quot;in&quot;</span><span class="p">)</span>
+
+    <span class="n">rho</span>   <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air density&#39;</span><span class="p">)</span>
+    <span class="n">visc</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air viscosity&#39;</span><span class="p">)</span>
+    <span class="n">vw</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;wind velocity&#39;</span><span class="p">)</span>
+    <span class="n">vc</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;vertical velocity&#39;</span><span class="p">)</span>
+    <span class="n">Omega</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
+
+    <span class="n">c</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;chord distribution&#39;</span><span class="p">)</span>
+    <span class="n">Cl</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;lift coefficient distribution&#39;</span><span class="p">)</span>
+    <span class="n">d</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;spar diameter distribution&#39;</span><span class="p">)</span>
+
+    <span class="n">yWire</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;location of wire attachment along span&#39;</span><span class="p">)</span>
+    <span class="n">zWire</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;depth of wire attachement&#39;</span><span class="p">)</span>
+    <span class="n">tWire</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;thickness of wire&#39;</span><span class="p">)</span>
+
+    <span class="n">Cm</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">xtU</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;fraction of laminar flow on the upper surface&#39;</span><span class="p">)</span>
+    <span class="n">xtL</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;fraction of laminar flow on the lower surface&#39;</span><span class="p">)</span>
+
+    <span class="n">q</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;deformation&#39;</span><span class="p">)</span>
+
+    <span class="n">anhedral</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Aero2.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.aero.Aero2.configure">[docs]</a>        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">Thrust</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Ns&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yN&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;dr&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">,</span>         <span class="s">&#39;thrust.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;ycmax&#39;</span><span class="p">,</span>     <span class="s">&#39;thrust.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Cl&#39;</span><span class="p">,</span>        <span class="s">&#39;thrust.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span>         <span class="s">&#39;thrust.c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span>       <span class="s">&#39;thrust.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Omega&#39;</span><span class="p">,</span>     <span class="s">&#39;thrust.Omega&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;induced&#39;</span><span class="p">,</span> <span class="n">VortexRing</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yN&#39;</span><span class="p">,</span>        <span class="s">&#39;induced.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Ns&#39;</span><span class="p">,</span>        <span class="s">&#39;induced.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;h&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.h&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;vc&#39;</span><span class="p">,</span>        <span class="s">&#39;induced.vc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span>       <span class="s">&#39;induced.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;thrust.dT&#39;</span><span class="p">,</span> <span class="s">&#39;induced.dT&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Omega&#39;</span><span class="p">,</span>     <span class="s">&#39;induced.Omega&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;q&#39;</span><span class="p">,</span>         <span class="s">&#39;induced.q&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;anhedral&#39;</span><span class="p">,</span>  <span class="s">&#39;induced.anhedral&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;lift_drag&#39;</span><span class="p">,</span> <span class="n">LiftDrag</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yN&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Ns&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;dr&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">,</span>          <span class="s">&#39;lift_drag.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span>        <span class="s">&#39;lift_drag.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;visc&#39;</span><span class="p">,</span>       <span class="s">&#39;lift_drag.visc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;vw&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.vw&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;vc&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.vc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Omega&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.Omega&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span>          <span class="s">&#39;lift_drag.c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Cl&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">,</span>          <span class="s">&#39;lift_drag.d&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;yWire&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;zWire&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.zWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;tWire&#39;</span><span class="p">,</span>      <span class="s">&#39;lift_drag.tWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;Cm&#39;</span><span class="p">,</span>         <span class="s">&#39;lift_drag.Cm&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;xtU&#39;</span><span class="p">,</span>        <span class="s">&#39;lift_drag.xtU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;xtL&#39;</span><span class="p">,</span>        <span class="s">&#39;lift_drag.xtL&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;induced.vi&#39;</span><span class="p">,</span> <span class="s">&#39;lift_drag.vi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;thrust.chordFrac&#39;</span><span class="p">,</span> <span class="s">&#39;lift_drag.chordFrac&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;induced.vi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.phi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.Re&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.Cd&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;lift_drag.Fblade&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;thrust&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;induced&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;lift_drag&#39;</span><span class="p">)</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.heli_opt_complex &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.heli_opt_complex</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Assembly</span><span class="p">,</span> <span class="n">set_as_top</span>
+<span class="kn">from</span> <span class="nn">openmdao.lib.datatypes.api</span> <span class="kn">import</span> <span class="n">Float</span>
+<span class="kn">from</span> <span class="nn">openmdao.lib.drivers.api</span> <span class="kn">import</span> <span class="n">SLSQPdriver</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pyopt_driver</span> <span class="kn">import</span> <span class="n">pyopt_driver</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">pyopt_driver</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.util.log</span> <span class="kn">import</span> <span class="n">enable_trace</span>  <span class="c"># , disable_trace</span>
+
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">pi</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">AtlasConfiguration</span><span class="p">,</span> <span class="n">AeroStructural</span>
+
+
+<div class="viewcode-block" id="ConfigOpt"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_complex.ConfigOpt">[docs]</a><span class="k">class</span> <span class="nc">ConfigOpt</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Atlas configuration for single point optimization &quot;&quot;&quot;</span>
+
+    <span class="c"># inputs for optimizer</span>
+    <span class="n">Omega_opt</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConfigOpt.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_complex.ConfigOpt.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConfigOpt</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+        <span class="c"># use optimizer provided value for Omega</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Omega</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_opt</span>
+
+</div></div>
+<div class="viewcode-block" id="AeroStructuralOpt"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_complex.AeroStructuralOpt">[docs]</a><span class="k">class</span> <span class="nc">AeroStructuralOpt</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; AeroStructural assembly for single point optimization &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AeroStructuralOpt.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_complex.AeroStructuralOpt.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AeroStructuralOpt</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
+
+        <span class="c"># replace config with optimizer driven config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">,</span> <span class="n">ConfigOpt</span><span class="p">())</span>
+
+        <span class="c"># create passthroughs for variables used by the optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;config.Omega_opt&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;struc.Mtot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ttot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ptot&#39;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="HeliOpt"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_complex.HeliOpt">[docs]</a><span class="k">class</span> <span class="nc">HeliOpt</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Single point aero-structural optimization &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HeliOpt.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_complex.HeliOpt.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># add an optimizer and an AeroStructural assembly</span>
+        <span class="k">if</span> <span class="n">pyopt_driver</span> <span class="ow">and</span> <span class="s">&#39;SNOPT&#39;</span> <span class="ow">in</span> <span class="n">pyopt_driver</span><span class="o">.</span><span class="n">_check_imports</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&quot;driver&quot;</span><span class="p">,</span> <span class="n">pyopt_driver</span><span class="o">.</span><span class="n">pyOptDriver</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="s">&quot;SNOPT&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="c"># any changes to default SNOPT options?</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;SNOPT not available, using SLSQP&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;driver&#39;</span><span class="p">,</span> <span class="n">SLSQPdriver</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;aso&#39;</span><span class="p">,</span> <span class="n">AeroStructuralOpt</span><span class="p">())</span>
+
+        <span class="c"># objective: minimize total power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s">&#39;aso.Ptot&#39;</span><span class="p">)</span>
+
+        <span class="c"># parameter: rotor speed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s">&#39;aso.Omega_opt&#39;</span><span class="p">,</span>
+                                  <span class="n">low</span><span class="o">=</span><span class="mf">0.15</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.25</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Omega_opt</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span>  <span class="c"># initial value</span>
+
+        <span class="c"># constraint: lift &gt;= weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="s">&#39;aso.Mtot*9.8-aso.Ttot&lt;=0&#39;</span><span class="p">)</span>
+
+        <span class="c"># TODO: optional constraints</span>
+        <span class="c">#</span>
+        <span class="c">#    if flags.ConFail:</span>
+        <span class="c">#       Structural Failure in Rotor Spar (ConFail)</span>
+        <span class="c">#       Buckling failure of spar (ConFailBuck)</span>
+        <span class="c">#       Tensile failure in wire (ConFailWire)</span>
+        <span class="c">#</span>
+        <span class="c">#    if flags.ConDef:</span>
+        <span class="c">#       Constraints on Maximum Deformation (ConDelta)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">HeliOpt</span><span class="p">())</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">gradient_options</span><span class="o">.</span><span class="n">force_fd</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">gradient_options</span><span class="o">.</span><span class="n">fd_step</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">gradient_options</span><span class="o">.</span><span class="n">fd_form</span> <span class="o">=</span> <span class="s">&quot;complex_step&quot;</span>
+    <span class="c">#opt.aso.Omega_opt = 1.0512</span>
+
+    <span class="c">#opt.driver.run_iteration()</span>
+
+    <span class="k">print</span> <span class="s">&#39;Parameter:  Omega =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Omega</span>
+
+    <span class="k">print</span> <span class="s">&#39;Constraint: Weight-Lift =&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Mtot</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Ttot</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s">&#39;Objective:  Ptot =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Ptot</span>
+
+    <span class="c"># enable_trace()</span>
+    <span class="c">#exit()</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+
+    <span class="k">print</span> <span class="s">&#39;Parameter:  Omega =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Omega</span>
+
+    <span class="k">print</span> <span class="s">&#39;Constraint: Weight-Lift =&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Mtot</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Ttot</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s">&#39;Objective:  Ptot =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Ptot</span>
+
+    <span class="c"># for reference, MATLAB solution:</span>
+    <span class="c">#    Omega: 1.0512</span>
+    <span class="c">#    Ptot: 421.3185</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

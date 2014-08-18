@@ -6,45 +6,39 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Running the Atlas model (Multiple Design Points) &mdash; Atlas 0.1 documentation</title>
+    <title>Atlas.heli_opt_multipoint &mdash; Atlas 0.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
+        URL_ROOT:    '../../',
         VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Atlas 0.1 documentation" href="index.html" />
-    <link rel="next" title="Source Documentation" href="srcdocs.html" />
-    <link rel="prev" title="Running the Atlas model (Single Design Point)" href="running.html" /> 
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
+          <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
+          <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="srcdocs.html" title="Source Documentation"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="running.html" title="Running the Atlas model (Single Design Point)"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Atlas 0.1 documentation</a> &raquo;</li> 
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,29 +47,34 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="running-the-atlas-model-multiple-design-points">
-<h1>Running the Atlas model (Multiple Design Points)<a class="headerlink" href="#running-the-atlas-model-multiple-design-points" title="Permalink to this headline">¶</a></h1>
-<p>The multi-point optimization of Atlas distributes the optimization across
-4 design points. Each of these points represents a different operating condition
-for the vehicle:</p>
-<ol class="arabic simple">
-<li>Low altitude point</li>
-<li>High altitude point</li>
-<li>Wind point</li>
-<li>Gravity point</li>
-</ol>
-<p>Each of these design points is represented by a separate AeroStructural assembly
-instance, each with an AtlasConfiguration component with settings to represent
-the differences between the design points.</p>
-<p>First, for the low altitude design point:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ConfigLow</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
+  <h1>Source code for Atlas.heli_opt_multipoint</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Assembly</span><span class="p">,</span> <span class="n">set_as_top</span>
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">VariableTree</span>
+<span class="kn">from</span> <span class="nn">openmdao.lib.datatypes.api</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">openmdao.lib.drivers.api</span> <span class="kn">import</span> <span class="n">SLSQPdriver</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pyopt_driver</span> <span class="kn">import</span> <span class="n">pyopt_driver</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">pyopt_driver</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.util.log</span> <span class="kn">import</span> <span class="n">enable_trace</span><span class="p">,</span> <span class="n">disable_trace</span>
+
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">pi</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">AtlasConfiguration</span><span class="p">,</span> <span class="n">AeroStructural</span>
+
+
+<div class="viewcode-block" id="ConfigLow"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigLow">[docs]</a><span class="k">class</span> <span class="nc">ConfigLow</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Atlas configuration for low altitude &quot;&quot;&quot;</span>
 
     <span class="n">Omega_opt</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
 
     <span class="n">H_opt</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;height of aircraft&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConfigLow.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigLow.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConfigLow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
         <span class="c"># use optimizer provided values</span>
@@ -83,11 +82,11 @@ the differences between the design points.</p>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">h</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_opt</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">zWire</span>
 
-
-<span class="k">class</span> <span class="nc">AeroStructuralLow</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
+</div></div>
+<div class="viewcode-block" id="AeroStructuralLow"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralLow">[docs]</a><span class="k">class</span> <span class="nc">AeroStructuralLow</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; AeroStructural assembly for low altitude case in multipoint optimization &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AeroStructuralLow.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralLow.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AeroStructuralLow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
 
         <span class="c"># replace config with optimizer driven config</span>
@@ -101,10 +100,9 @@ the differences between the design points.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;struc.Mtot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ttot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ptot&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Now, the high-altitude design point:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ConfigHigh</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
+
+</div></div>
+<div class="viewcode-block" id="ConfigHigh"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigHigh">[docs]</a><span class="k">class</span> <span class="nc">ConfigHigh</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Atlas configuration for high altitude &quot;&quot;&quot;</span>
 
     <span class="n">Omega_opt</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
@@ -116,7 +114,7 @@ the differences between the design points.</p>
 
     <span class="n">TWire_opt</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConfigHigh.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigHigh.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConfigHigh</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
         <span class="c"># use optimizer provided values</span>
@@ -129,11 +127,11 @@ the differences between the design points.</p>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">TWire</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">TWire_opt</span><span class="p">]</span>
 
-
-<span class="k">class</span> <span class="nc">AeroStructuralHigh</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
+</div></div>
+<div class="viewcode-block" id="AeroStructuralHigh"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralHigh">[docs]</a><span class="k">class</span> <span class="nc">AeroStructuralHigh</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; AeroStructural assembly for high altitude case in multipoint optimization &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AeroStructuralHigh.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralHigh.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AeroStructuralHigh</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
 
         <span class="c"># replace config with optimizer driven config</span>
@@ -150,10 +148,9 @@ the differences between the design points.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;struc.Mtot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ttot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ptot&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Then the wind design point:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ConfigWind</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
+
+</div></div>
+<div class="viewcode-block" id="ConfigWind"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigWind">[docs]</a><span class="k">class</span> <span class="nc">ConfigWind</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Atlas configuration for wind case &quot;&quot;&quot;</span>
 
     <span class="n">Omega_opt</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
@@ -167,7 +164,7 @@ the differences between the design points.</p>
 
     <span class="n">vw_opt</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;wind velocity&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConfigWind.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigWind.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConfigWind</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
         <span class="c"># use optimizer provided values</span>
@@ -185,11 +182,11 @@ the differences between the design points.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">FreeWake</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># momentum theory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">AeroStr</span>  <span class="o">=</span> <span class="mi">0</span>  <span class="c"># assume flat wing (no deformation)</span>
 
-
-<span class="k">class</span> <span class="nc">AeroStructuralWind</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
+</div></div>
+<div class="viewcode-block" id="AeroStructuralWind"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralWind">[docs]</a><span class="k">class</span> <span class="nc">AeroStructuralWind</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; AeroStructural assembly for wind case in multipoint optimization &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AeroStructuralWind.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralWind.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AeroStructuralWind</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
 
         <span class="c"># replace config with optimizer driven config</span>
@@ -207,10 +204,9 @@ the differences between the design points.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;struc.Mtot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ttot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ptot&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Finally, the gravity design point:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ConfigGravity</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
+
+</div></div>
+<div class="viewcode-block" id="ConfigGravity"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigGravity">[docs]</a><span class="k">class</span> <span class="nc">ConfigGravity</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Atlas configuration for gravity case &quot;&quot;&quot;</span>
 
     <span class="n">Omega_opt</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
@@ -222,7 +218,7 @@ the differences between the design points.</p>
 
     <span class="n">TWire_opt</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ConfigGravity.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.ConfigGravity.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConfigGravity</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
         <span class="c"># use optimizer provided values</span>
@@ -236,11 +232,15 @@ the differences between the design points.</p>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">Load</span>     <span class="o">=</span> <span class="mi">1</span>  <span class="c"># gravity and wire forces only</span>
 
+        <span class="c"># FIXME: the following two flags are ignored</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">FreeWake</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># momentum theory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">AeroStr</span>  <span class="o">=</span> <span class="mi">0</span>  <span class="c"># assume flat wing (no deformation)</span>
 
-<span class="k">class</span> <span class="nc">AeroStructuralGravity</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
+</div></div>
+<div class="viewcode-block" id="AeroStructuralGravity"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralGravity">[docs]</a><span class="k">class</span> <span class="nc">AeroStructuralGravity</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; AeroStructural assembly for gravity case in multipoint optimization &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AeroStructuralGravity.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.AeroStructuralGravity.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AeroStructuralGravity</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
 
         <span class="c"># replace config with optimizer driven config</span>
@@ -257,12 +257,9 @@ the differences between the design points.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;struc.Mtot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ttot&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ptot&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Now, these 4 design points are assembled together. Parameterizations of
-each design point are exposed as input variables. Summary outputs are exposed
-using passthroughs.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Multipoint</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
+
+</div></div>
+<div class="viewcode-block" id="Multipoint"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.Multipoint">[docs]</a><span class="k">class</span> <span class="nc">Multipoint</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Assembly for multipoint AeroStructural optimization.</span>
 
 <span class="sd">        Evaluates AeroStructural for four cases:</span>
@@ -296,7 +293,7 @@ using passthroughs.</p>
     <span class="c"># outputs</span>
     <span class="n">P</span>          <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Multipoint.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.Multipoint.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c"># low altitude</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="n">AeroStructuralLow</span><span class="p">())</span>
 
@@ -342,14 +339,12 @@ using passthroughs.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;alt_ratio*low.Ptot + (1 - alt_ratio)*high.Ptot&#39;</span><span class="p">,</span> <span class="s">&#39;P&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">([</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">,</span> <span class="s">&#39;wind&#39;</span><span class="p">,</span> <span class="s">&#39;grav&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Finally, the multipoint optimization is set up to operate on an instance of
-the Multipoint assembly, with parameters for each of the 4 design cases being set.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">HeliOptM</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
+
+</div></div>
+<div class="viewcode-block" id="HeliOptM"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.HeliOptM">[docs]</a><span class="k">class</span> <span class="nc">HeliOptM</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Multipoint aero-structural optimization &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="HeliOptM.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.heli_opt_multipoint.HeliOptM.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c"># add an optimizer and a multi-point AeroStructural assembly</span>
         <span class="k">if</span> <span class="n">pyopt_driver</span> <span class="ow">and</span> <span class="s">&#39;SNOPT&#39;</span> <span class="ow">in</span> <span class="n">pyopt_driver</span><span class="o">.</span><span class="n">_check_imports</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&quot;driver&quot;</span><span class="p">,</span> <span class="n">pyopt_driver</span><span class="o">.</span><span class="n">pyOptDriver</span><span class="p">())</span>
@@ -426,53 +421,39 @@ the Multipoint assembly, with parameters for each of the 4 design cases being se
         <span class="n">vrCon</span><span class="o">.</span><span class="n">FOSquadbuck</span> <span class="o">=</span> <span class="mf">5.</span>
         <span class="n">vrCon</span><span class="o">.</span><span class="n">FOStorbuck</span>  <span class="o">=</span> <span class="mf">0.5</span>     <span class="c"># 1.5</span>
         <span class="n">vrCon</span><span class="o">.</span><span class="n">FOSwire</span>     <span class="o">=</span> <span class="mf">0.5</span>     <span class="c"># 2</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># enable_trace()</span>
+
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">HeliOptM</span><span class="p">())</span>
+
+    <span class="k">print</span> <span class="s">&#39;Starting multipoint optimization at </span><span class="si">%s</span><span class="s"> ...&#39;</span> <span class="o">%</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%X</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">time1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">time2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">&#39;Optimization complete at </span><span class="si">%s</span><span class="s"> (elapsed time: </span><span class="si">%5.2f</span><span class="s"> minutes)&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%X</span><span class="s">&#39;</span><span class="p">),</span> <span class="p">((</span><span class="n">time2</span><span class="o">-</span><span class="n">time1</span><span class="p">)</span><span class="o">/</span><span class="mi">60</span><span class="p">))</span>
+
+    <span class="k">print</span>
+
+    <span class="k">print</span> <span class="s">&#39;Objective:  P =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">P</span>
+
+    <span class="k">print</span> <span class="s">&#39;Constraint: Low Weight-Lift =&#39;</span><span class="p">,</span>  <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_low</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_low</span>
+    <span class="k">print</span> <span class="s">&#39;Constraint: High Weight-Lift =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_high</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_high</span>
+
+    <span class="k">print</span> <span class="s">&#39;Parameter:  Omega (Low) =&#39;</span><span class="p">,</span>  <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Omega_low</span>
+    <span class="k">print</span> <span class="s">&#39;Parameter:  Omega (High) =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Omega_high</span>
 </pre></div>
-</div>
-<p>This can be run similar to the single-point optimization:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">opt</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">HeliOptM</span><span class="p">())</span>
-
-<span class="k">print</span> <span class="s">&#39;Starting multipoint optimization at </span><span class="si">%s</span><span class="s"> ...&#39;</span> <span class="o">%</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%X</span><span class="s">&#39;</span><span class="p">)</span>
-<span class="n">time1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">opt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="n">time2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="k">print</span> <span class="s">&#39;Optimization complete at </span><span class="si">%s</span><span class="s"> (elapsed time: </span><span class="si">%5.2f</span><span class="s"> minutes)&#39;</span> \
-    <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%X</span><span class="s">&#39;</span><span class="p">),</span> <span class="p">((</span><span class="n">time2</span><span class="o">-</span><span class="n">time1</span><span class="p">)</span><span class="o">/</span><span class="mi">60</span><span class="p">))</span>
-
-<span class="k">print</span>
-
-<span class="k">print</span> <span class="s">&#39;Objective:  P =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">P</span>
-
-<span class="k">print</span> <span class="s">&#39;Constraint: Low Weight-Lift =&#39;</span><span class="p">,</span>  <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_low</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_low</span>
-<span class="k">print</span> <span class="s">&#39;Constraint: High Weight-Lift =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_high</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_high</span>
-
-<span class="k">print</span> <span class="s">&#39;Parameter:  Omega (Low) =&#39;</span><span class="p">,</span>  <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Omega_low</span>
-<span class="k">print</span> <span class="s">&#39;Parameter:  Omega (High) =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Omega_high</span>
-</pre></div>
-</div>
-<p>The multipoint optimization can be peformed by running the <cite>heli_opt_multipoint.py</cite>
-file located in the &#8220;examples&#8221; directory.</p>
-</div>
-
 
           </div>
         </div>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="running.html"
-                        title="previous chapter">Running the Atlas model (Single Design Point)</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="srcdocs.html"
-                        title="next chapter">Source Documentation</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/running_multi.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
+    <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
@@ -491,18 +472,13 @@ file located in the &#8220;examples&#8221; directory.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
+          <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
+          <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="srcdocs.html" title="Source Documentation"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="running.html" title="Running the Atlas model (Single Design Point)"
-             >previous</a> |</li>
-        <li><a href="index.html">Atlas 0.1 documentation</a> &raquo;</li> 
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

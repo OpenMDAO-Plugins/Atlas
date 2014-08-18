@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.configuration &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.configuration</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sqrt</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Component</span><span class="p">,</span> <span class="n">VariableTree</span>
+<span class="kn">from</span> <span class="nn">openmdao.main.datatypes.api</span> <span class="kn">import</span> <span class="n">Int</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">VarTree</span>
+
+<span class="kn">from</span> <span class="nn">properties</span> <span class="kn">import</span> <span class="n">JointProperties</span>
+
+
+<div class="viewcode-block" id="Flags"><a class="viewcode-back" href="../../srcdocs.html#Atlas.configuration.Flags">[docs]</a><span class="k">class</span> <span class="nc">Flags</span><span class="p">(</span><span class="n">VariableTree</span><span class="p">):</span>
+    <span class="n">Opt</span>          <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - single run, 1 - optimization&#39;</span><span class="p">)</span>
+    <span class="n">ConFail</span>      <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;1 - use structural failure as a constraint on optimization&#39;</span><span class="p">)</span>
+    <span class="n">ConWireCont</span>  <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;1 - use wire length continuity as a constraint to set appropriate wire forces in multi-point optimizations&#39;</span><span class="p">)</span>
+    <span class="n">ConJigCont</span>   <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;1 - use jig continuity&#39;</span><span class="p">)</span>
+    <span class="n">ConDef</span>       <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;1 - constraints on maximum deformation of the rotor&#39;</span><span class="p">)</span>
+    <span class="n">MultiPoint</span>   <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - single point optimization, 1 - 4 point optimization (h=0.5, h=3, wind case, gravity load)&#39;</span><span class="p">)</span>
+    <span class="n">Quad</span>         <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - prop drive, 1 - quad rotor&#39;</span><span class="p">)</span>
+    <span class="n">FreeWake</span>     <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - momentum theory, 1 - free vortex ring wake&#39;</span><span class="p">)</span>
+    <span class="n">PlotWake</span>     <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - dont plot wake, 1 - plot wake &#39;</span><span class="p">)</span>
+    <span class="n">DynamicClimb</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - vc imposes downward velocity, 1 - vc represents climb (final altitude depends on Nw)&#39;</span><span class="p">)</span>
+    <span class="n">Cover</span>        <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - no cover over root rotor blades, 1 - cover&#39;</span><span class="p">)</span>
+    <span class="n">Load</span>         <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - normal run, 1 - gravity forces only, 2 - prescribed load from pLoad&#39;</span><span class="p">)</span>
+    <span class="n">Cdfit</span>        <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - analytic model for drag coefficient, 1 - curve fit on BE airfoils&#39;</span><span class="p">)</span>
+    <span class="n">GWing</span>        <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - Daedalus style wing, 1 - Gossamer style wing (changes amount of laminar flow)&#39;</span><span class="p">)</span>
+    <span class="n">AeroStr</span>      <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - Assume flat wing, 1 - take deformation into account&#39;</span><span class="p">)</span>
+    <span class="n">Movie</span>        <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - dont save animation, 1 - save animation&#39;</span><span class="p">)</span>
+    <span class="n">wingWarp</span>     <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;0 - no twist constraint, &gt;0 - twist constraint at wingWarp&#39;</span><span class="p">)</span>
+
+    <span class="n">CFRPType</span>     <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;NCT301-1X HS40 G150 33 +/-2%RW&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;type of carbon fibre reinforced polymer&#39;</span><span class="p">)</span>
+
+    <span class="n">WireType</span>     <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="s">&#39;Pianowire&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;Pianowire&#39;</span><span class="p">,</span> <span class="s">&#39;Vectran&#39;</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;Material to be used for lift wire&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="PrescribedLoad"><a class="viewcode-back" href="../../srcdocs.html#Atlas.configuration.PrescribedLoad">[docs]</a><span class="k">class</span> <span class="nc">PrescribedLoad</span><span class="p">(</span><span class="n">VariableTree</span><span class="p">):</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">9.9999</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;Point load location&#39;</span><span class="p">)</span>
+    <span class="n">pointZ</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.15</span><span class="o">*</span><span class="mf">9.8</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">)</span>
+    <span class="n">pointM</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;Nm&#39;</span><span class="p">)</span>
+    <span class="n">distributedX</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;N/m&#39;</span><span class="p">)</span>
+    <span class="n">distributedZ</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;N/m&#39;</span><span class="p">)</span>
+    <span class="n">distributedM</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;Nm/m&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="AtlasConfiguration"><a class="viewcode-back" href="../../srcdocs.html#Atlas.configuration.AtlasConfiguration">[docs]</a><span class="k">class</span> <span class="nc">AtlasConfiguration</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Atlas configuration</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># outputs (manual configuration)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">VarTree</span><span class="p">(</span><span class="n">Flags</span><span class="p">(),</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">)</span>
+
+    <span class="n">b</span>  <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of blades&#39;</span><span class="p">)</span>
+    <span class="n">Ns</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of elements&#39;</span><span class="p">)</span>
+
+    <span class="n">R</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor radius&#39;</span><span class="p">)</span>
+    <span class="n">H</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span>  <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;height of aircraft&#39;</span><span class="p">)</span>
+
+    <span class="n">ycmax</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.4656</span><span class="p">,</span> <span class="mf">3.2944</span><span class="p">]),</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">)</span>
+
+    <span class="n">rho</span>   <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">1.18</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air density&#39;</span><span class="p">)</span>
+    <span class="n">vw</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span>  <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;wind velocity&#39;</span><span class="p">)</span>
+    <span class="n">vc</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span>  <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;vertical velocity&#39;</span><span class="p">)</span>
+    <span class="n">visc</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">1.78e-5</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air viscosity&#39;</span><span class="p">)</span>
+    <span class="n">Omega</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.165</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
+
+    <span class="n">c</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.36</span><span class="p">]),</span>  <span class="c"># ideal curve</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;chord distribution&#39;</span><span class="p">)</span>
+    <span class="n">d</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.442</span><span class="p">,</span> <span class="mf">1.99</span><span class="p">,</span> <span class="mf">1.239</span><span class="p">])</span><span class="o">*</span><span class="mf">2.54</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>  <span class="c"># inches to meters</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;spar diameter distribution&#39;</span><span class="p">)</span>
+    <span class="n">Cl</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.43</span><span class="p">,</span> <span class="mf">1.23</span><span class="p">]),</span>  <span class="c"># 0.5 m No canard lift distribution (as flown)</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;lift coefficient distribution&#39;</span><span class="p">)</span>
+    <span class="n">Cm</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.15</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.12</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.12</span><span class="p">]),</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">t</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.14</span><span class="p">,</span> <span class="mf">0.14</span><span class="p">,</span> <span class="mf">0.14</span><span class="p">]),</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">xEA</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.27</span><span class="p">,</span> <span class="mf">0.33</span><span class="p">,</span> <span class="mf">0.24</span><span class="p">]),</span>  <span class="c"># percent chord</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">xtU</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.15</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">]),</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;fraction of laminar flow on the upper surface&#39;</span><span class="p">)</span>
+    <span class="n">xtL</span>   <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.30</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mf">0.30</span><span class="p">]),</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;fraction of laminar flow on the lower surface&#39;</span><span class="p">)</span>
+
+    <span class="n">theta</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span><span class="o">*</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">,</span>  <span class="c"># deg to rad</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;wrap angle&#39;</span><span class="p">)</span>
+    <span class="n">nTube</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]),</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of tube layers&#39;</span><span class="p">)</span>
+    <span class="n">nCap</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of cap strips&#39;</span><span class="p">)</span>
+    <span class="n">lBiscuit</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span><span class="o">*</span><span class="mf">2.54</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>  <span class="c"># inches to meters</span>
+                <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;unsupported biscuit length&#39;</span><span class="p">)</span>
+
+    <span class="n">dQuad</span>        <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="mf">2.54</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>  <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;diameter of quad rotor struts&#39;</span><span class="p">)</span>
+    <span class="n">thetaQuad</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">35</span><span class="o">*</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">,</span>   <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;wrap angle of quad rotor struts&#39;</span><span class="p">)</span>
+    <span class="n">nTubeQuad</span>    <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span>             <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of CFRP layers in quad rotor struts&#39;</span><span class="p">)</span>
+    <span class="n">lBiscuitQuad</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">12</span><span class="o">*</span><span class="mf">2.54</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">hQuad</span>        <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span>         <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;height of quad-rotor truss&#39;</span><span class="p">)</span>
+
+    <span class="n">collective</span>   <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="o">*</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;collective angle in radians&#39;</span><span class="p">)</span>
+    <span class="n">etaP</span>         <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">yWire</span>        <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="mf">5.8852</span><span class="p">],</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;location of wire attachment along span&#39;</span><span class="p">)</span>  <span class="c"># actual spars</span>
+    <span class="n">zWire</span>        <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span>      <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;depth of wire attachement&#39;</span><span class="p">)</span>
+    <span class="n">tWire</span>        <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="o">.</span><span class="mo">0016</span><span class="p">,</span>    <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;thickness of wire&#39;</span><span class="p">)</span>  <span class="c"># steel</span>
+    <span class="n">TWire</span>        <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="mf">1100.</span><span class="p">],</span>  <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">TEtension</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">50.0</span><span class="p">,</span>     <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">anhedral</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.8</span><span class="o">*</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">)</span>
+
+    <span class="n">mElseRotor</span>   <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">5.11</span><span class="p">,</span>    <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">mElseCentre</span>  <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">6.487</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">mElseR</span>       <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.032</span><span class="p">,</span>   <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">mPilot</span>       <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">71.0</span><span class="p">,</span>    <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;mass of pilot (kg)&#39;</span><span class="p">)</span>
+
+    <span class="c"># outputs (calculated)</span>
+    <span class="n">yN</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;node locations&#39;</span><span class="p">)</span>
+    <span class="n">dr</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;length of each element&#39;</span><span class="p">)</span>
+    <span class="n">r</span>     <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;radial location of each element&#39;</span><span class="p">)</span>
+    <span class="n">RQuad</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;distance from centre of helicopter to centre of quad rotors&#39;</span><span class="p">)</span>
+    <span class="n">h</span>     <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;height of rotor&#39;</span><span class="p">)</span>
+
+    <span class="n">Jprop</span>    <span class="o">=</span> <span class="n">VarTree</span><span class="p">(</span><span class="n">JointProperties</span><span class="p">(),</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">)</span>
+    <span class="n">presLoad</span> <span class="o">=</span> <span class="n">VarTree</span><span class="p">(</span><span class="n">PrescribedLoad</span><span class="p">(),</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="c"># force execution, since there are no &#39;inputs&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force_execute</span> <span class="o">=</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="AtlasConfiguration.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.configuration.AtlasConfiguration.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dr</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>     <span class="c"># length of each element</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">RQuad</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.05</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">zWire</span>
+
+        <span class="c"># Properties at joint location for buckling analysis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Jprop</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Jprop</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Jprop</span><span class="o">.</span><span class="n">nTube</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nTube</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Jprop</span><span class="o">.</span><span class="n">nCap</span>  <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCap</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Jprop</span><span class="o">.</span><span class="n">lBiscuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lBiscuit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="AtlasConfiguration.display"><a class="viewcode-back" href="../../srcdocs.html#Atlas.configuration.AtlasConfiguration.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; print values used in AeroStructural/HeliCalc (for debugging)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span> <span class="s">&#39;Cl:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cl</span>
+        <span class="k">print</span> <span class="s">&#39;Cm:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cm</span>
+        <span class="k">print</span> <span class="s">&#39;Ns:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span>
+        <span class="k">print</span> <span class="s">&#39;Omega:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega</span>
+        <span class="k">print</span> <span class="s">&#39;R:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span>
+        <span class="k">print</span> <span class="s">&#39;TEtension:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEtension</span>
+        <span class="k">print</span> <span class="s">&#39;TWire:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TWire</span>
+        <span class="k">print</span> <span class="s">&#39;anhedral:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anhedral</span>
+        <span class="k">print</span> <span class="s">&#39;b:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span>
+        <span class="k">print</span> <span class="s">&#39;c:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span>
+        <span class="k">print</span> <span class="s">&#39;collective:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">collective</span>
+        <span class="k">print</span> <span class="s">&#39;dQuad:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dQuad</span>
+        <span class="k">print</span> <span class="s">&#39;d:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+        <span class="k">print</span> <span class="s">&#39;etaP:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">etaP</span>
+        <span class="k">print</span> <span class="s">&#39;h:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span>
+        <span class="k">print</span> <span class="s">&#39;hQuad:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hQuad</span>
+        <span class="k">print</span> <span class="s">&#39;lBiscuitQuad:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lBiscuitQuad</span>
+        <span class="k">print</span> <span class="s">&#39;lBiscuit:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lBiscuit</span>
+        <span class="k">print</span> <span class="s">&#39;mElseCentre:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mElseCentre</span>
+        <span class="k">print</span> <span class="s">&#39;mElseR:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mElseR</span>
+        <span class="k">print</span> <span class="s">&#39;mElseRotor:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mElseRotor</span>
+        <span class="k">print</span> <span class="s">&#39;mPilot:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mPilot</span>
+        <span class="k">print</span> <span class="s">&#39;nCap:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCap</span>
+        <span class="k">print</span> <span class="s">&#39;nTubeQuad:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTubeQuad</span>
+        <span class="k">print</span> <span class="s">&#39;nTube:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTube</span>
+        <span class="k">print</span> <span class="s">&#39;rho:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
+        <span class="k">print</span> <span class="s">&#39;tWire:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tWire</span>
+        <span class="k">print</span> <span class="s">&#39;t:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span>
+        <span class="k">print</span> <span class="s">&#39;thetaQuad:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thetaQuad</span>
+        <span class="k">print</span> <span class="s">&#39;theta:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span>
+        <span class="k">print</span> <span class="s">&#39;vc:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vc</span>
+        <span class="k">print</span> <span class="s">&#39;visc:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visc</span>
+        <span class="k">print</span> <span class="s">&#39;vw:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vw</span>
+        <span class="k">print</span> <span class="s">&#39;xEA:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xEA</span>
+        <span class="k">print</span> <span class="s">&#39;xtL:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xtL</span>
+        <span class="k">print</span> <span class="s">&#39;xtU:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xtU</span>
+        <span class="k">print</span> <span class="s">&#39;yWire:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yWire</span>
+        <span class="k">print</span> <span class="s">&#39;ycmax:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ycmax</span>
+        <span class="k">print</span> <span class="s">&#39;zWire:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zWire</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

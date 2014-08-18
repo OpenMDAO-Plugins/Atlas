@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.test.test_properties &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.test.test_properties</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">DiscretizeProperties</span><span class="p">,</span> <span class="n">wireProperties</span><span class="p">,</span> <span class="n">SparProperties</span><span class="p">,</span> <span class="n">ChordProperties</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.util.testutil</span> <span class="kn">import</span> <span class="n">assert_rel_error</span>
+
+
+<div class="viewcode-block" id="relative_err"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.relative_err">[docs]</a><span class="k">def</span> <span class="nf">relative_err</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="absolute_err"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.absolute_err">[docs]</a><span class="k">def</span> <span class="nf">absolute_err</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="AtlasTestProperties"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.AtlasTestProperties">[docs]</a><span class="k">class</span> <span class="nc">AtlasTestProperties</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AtlasTestProperties.test_wireProperties"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.AtlasTestProperties.test_wireProperties">[docs]</a>    <span class="k">def</span> <span class="nf">test_wireProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">wireProperties</span><span class="p">[</span><span class="s">&#39;Pianowire&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s">&#39;RHO&#39;</span><span class="p">],</span> <span class="mf">7.85e3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s">&#39;E&#39;</span><span class="p">],</span> <span class="mf">2.10e11</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s">&#39;ULTIMATE&#39;</span><span class="p">],</span> <span class="mf">2.62e9</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="n">wireProperties</span><span class="p">[</span><span class="s">&#39;Vectran&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s">&#39;RHO&#39;</span><span class="p">],</span> <span class="mf">1.1065e3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s">&#39;E&#39;</span><span class="p">],</span> <span class="mf">3.921e10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s">&#39;ULTIMATE&#39;</span><span class="p">],</span> <span class="mf">9.828e8</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AtlasTestProperties.test_discretizeProperties"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.AtlasTestProperties.test_discretizeProperties">[docs]</a>    <span class="k">def</span> <span class="nf">test_discretizeProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">DiscretizeProperties</span><span class="p">()</span>
+
+        <span class="c"># set inputs</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">Ns</span>       <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">ycmax</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.4656</span><span class="p">,</span> <span class="mf">3.2944</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">R</span>        <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">c_in</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.8000</span><span class="p">,</span> <span class="mf">1.4000</span><span class="p">,</span> <span class="mf">0.4000</span><span class="p">,</span> <span class="mf">0.3600</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">Cl_in</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5000</span><span class="p">,</span> <span class="mf">1.4300</span><span class="p">,</span> <span class="mf">1.2300</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">Cm_in</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.1500</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">t_in</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">xtU_in</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1500</span><span class="p">,</span> <span class="mf">7.0000</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">xtL_in</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3000</span><span class="p">,</span> <span class="mf">7.0000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">xEA_in</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.2700</span><span class="p">,</span> <span class="mf">0.3300</span><span class="p">,</span> <span class="mf">0.2400</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">yWire</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.8852</span><span class="p">,</span> <span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">d_in</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0874</span><span class="p">,</span> <span class="mf">0.0505</span><span class="p">,</span> <span class="mf">0.0315</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">theta_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">nTube_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">nCap_in</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">lBiscuit_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.1524</span><span class="p">])</span>
+
+        <span class="c"># run</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="n">tol</span> <span class="o">=</span> <span class="mf">5e-4</span>
+        <span class="n">cE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.2729</span><span class="p">,</span> <span class="mf">1.3903</span><span class="p">,</span> <span class="mf">1.1757</span><span class="p">,</span> <span class="mf">1.0176</span><span class="p">,</span> <span class="mf">0.8818</span><span class="p">,</span>
+                       <span class="mf">0.7602</span><span class="p">,</span> <span class="mf">0.6507</span><span class="p">,</span> <span class="mf">0.5528</span><span class="p">,</span> <span class="mf">0.4666</span><span class="p">,</span> <span class="mf">0.3925</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">cE</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">cE</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">cN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">absolute_err</span><span class="p">(</span><span class="n">cN</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">cN</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">c100</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0273</span><span class="p">,</span> <span class="mf">0.0819</span><span class="p">,</span> <span class="mf">0.1365</span><span class="p">,</span> <span class="mf">0.1910</span><span class="p">,</span> <span class="mf">0.2456</span><span class="p">,</span> <span class="mf">0.3002</span><span class="p">,</span> <span class="mf">0.3548</span><span class="p">,</span>
+                         <span class="mf">0.4094</span><span class="p">,</span> <span class="mf">0.4640</span><span class="p">,</span> <span class="mf">0.5186</span><span class="p">,</span> <span class="mf">0.5731</span><span class="p">,</span> <span class="mf">0.6277</span><span class="p">,</span> <span class="mf">0.6823</span><span class="p">,</span> <span class="mf">0.7369</span><span class="p">,</span>
+                         <span class="mf">1.4045</span><span class="p">,</span> <span class="mf">1.3766</span><span class="p">,</span> <span class="mf">1.3507</span><span class="p">,</span> <span class="mf">1.3263</span><span class="p">,</span> <span class="mf">1.3033</span><span class="p">,</span> <span class="mf">1.2815</span><span class="p">,</span> <span class="mf">1.2606</span><span class="p">,</span>
+                         <span class="mf">1.2406</span><span class="p">,</span> <span class="mf">1.2213</span><span class="p">,</span> <span class="mf">1.2026</span><span class="p">,</span> <span class="mf">1.1845</span><span class="p">,</span> <span class="mf">1.1669</span><span class="p">,</span> <span class="mf">1.1498</span><span class="p">,</span> <span class="mf">1.1331</span><span class="p">,</span>
+                         <span class="mf">1.1168</span><span class="p">,</span> <span class="mf">1.1007</span><span class="p">,</span> <span class="mf">1.0850</span><span class="p">,</span> <span class="mf">1.0696</span><span class="p">,</span> <span class="mf">1.0545</span><span class="p">,</span> <span class="mf">1.0396</span><span class="p">,</span> <span class="mf">1.0249</span><span class="p">,</span>
+                         <span class="mf">1.0104</span><span class="p">,</span> <span class="mf">0.9961</span><span class="p">,</span> <span class="mf">0.9821</span><span class="p">,</span> <span class="mf">0.9682</span><span class="p">,</span> <span class="mf">0.9545</span><span class="p">,</span> <span class="mf">0.9409</span><span class="p">,</span> <span class="mf">0.9275</span><span class="p">,</span>
+                         <span class="mf">0.9143</span><span class="p">,</span> <span class="mf">0.9012</span><span class="p">,</span> <span class="mf">0.8882</span><span class="p">,</span> <span class="mf">0.8754</span><span class="p">,</span> <span class="mf">0.8628</span><span class="p">,</span> <span class="mf">0.8502</span><span class="p">,</span> <span class="mf">0.8378</span><span class="p">,</span>
+                         <span class="mf">0.8255</span><span class="p">,</span> <span class="mf">0.8134</span><span class="p">,</span> <span class="mf">0.8014</span><span class="p">,</span> <span class="mf">0.7894</span><span class="p">,</span> <span class="mf">0.7777</span><span class="p">,</span> <span class="mf">0.7660</span><span class="p">,</span> <span class="mf">0.7545</span><span class="p">,</span>
+                         <span class="mf">0.7430</span><span class="p">,</span> <span class="mf">0.7317</span><span class="p">,</span> <span class="mf">0.7205</span><span class="p">,</span> <span class="mf">0.7095</span><span class="p">,</span> <span class="mf">0.6985</span><span class="p">,</span> <span class="mf">0.6877</span><span class="p">,</span> <span class="mf">0.6770</span><span class="p">,</span>
+                         <span class="mf">0.6663</span><span class="p">,</span> <span class="mf">0.6559</span><span class="p">,</span> <span class="mf">0.6455</span><span class="p">,</span> <span class="mf">0.6352</span><span class="p">,</span> <span class="mf">0.6251</span><span class="p">,</span> <span class="mf">0.6151</span><span class="p">,</span> <span class="mf">0.6052</span><span class="p">,</span>
+                         <span class="mf">0.5954</span><span class="p">,</span> <span class="mf">0.5857</span><span class="p">,</span> <span class="mf">0.5761</span><span class="p">,</span> <span class="mf">0.5667</span><span class="p">,</span> <span class="mf">0.5574</span><span class="p">,</span> <span class="mf">0.5482</span><span class="p">,</span> <span class="mf">0.5391</span><span class="p">,</span>
+                         <span class="mf">0.5301</span><span class="p">,</span> <span class="mf">0.5213</span><span class="p">,</span> <span class="mf">0.5125</span><span class="p">,</span> <span class="mf">0.5039</span><span class="p">,</span> <span class="mf">0.4954</span><span class="p">,</span> <span class="mf">0.4871</span><span class="p">,</span> <span class="mf">0.4788</span><span class="p">,</span>
+                         <span class="mf">0.4707</span><span class="p">,</span> <span class="mf">0.4627</span><span class="p">,</span> <span class="mf">0.4548</span><span class="p">,</span> <span class="mf">0.4470</span><span class="p">,</span> <span class="mf">0.4393</span><span class="p">,</span> <span class="mf">0.4318</span><span class="p">,</span> <span class="mf">0.4244</span><span class="p">,</span>
+                         <span class="mf">0.4171</span><span class="p">,</span> <span class="mf">0.4099</span><span class="p">,</span> <span class="mf">0.4029</span><span class="p">,</span> <span class="mf">0.3960</span><span class="p">,</span> <span class="mf">0.3891</span><span class="p">,</span> <span class="mf">0.3825</span><span class="p">,</span> <span class="mf">0.3759</span><span class="p">,</span>
+                         <span class="mf">0.3694</span><span class="p">,</span> <span class="mf">0.3631</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">c100</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">c100</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">Cl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5000</span><span class="p">,</span> <span class="mf">1.4987</span><span class="p">,</span> <span class="mf">1.4604</span><span class="p">,</span> <span class="mf">1.4239</span><span class="p">,</span> <span class="mf">1.3940</span><span class="p">,</span>
+                       <span class="mf">1.3642</span><span class="p">,</span> <span class="mf">1.3344</span><span class="p">,</span> <span class="mf">1.3046</span><span class="p">,</span> <span class="mf">1.2747</span><span class="p">,</span> <span class="mf">0.8299</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">Cl</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">Cl</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">Cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.1500</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1494</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1330</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span>
+                       <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1200</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">Cm</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">Cm</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span>
+                      <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">,</span> <span class="mf">0.1400</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">t</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">xtU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span>
+                        <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">xtU</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">xtU</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">xtL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0500</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span>
+                        <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">,</span> <span class="mf">0.3000</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">xtL</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">xtL</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">xEA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.2700</span><span class="p">,</span> <span class="mf">0.2711</span><span class="p">,</span> <span class="mf">0.3039</span><span class="p">,</span> <span class="mf">0.3272</span><span class="p">,</span> <span class="mf">0.3138</span><span class="p">,</span>
+                        <span class="mf">0.3004</span><span class="p">,</span> <span class="mf">0.2870</span><span class="p">,</span> <span class="mf">0.2736</span><span class="p">,</span> <span class="mf">0.2601</span><span class="p">,</span> <span class="mf">0.2467</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">xEA</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">xEA</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0843</span><span class="p">,</span> <span class="mf">0.0780</span><span class="p">,</span> <span class="mf">0.0718</span><span class="p">,</span> <span class="mf">0.0655</span><span class="p">,</span> <span class="mf">0.0592</span><span class="p">,</span>
+                      <span class="mf">0.0530</span><span class="p">,</span> <span class="mf">0.0477</span><span class="p">,</span> <span class="mf">0.0431</span><span class="p">,</span> <span class="mf">0.0384</span><span class="p">,</span> <span class="mf">0.0338</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">d</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span>
+                          <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">,</span> <span class="mf">0.3491</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">theta</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">nTube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">nTube</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">nTube</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">nCap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">absolute_err</span><span class="p">(</span><span class="n">nCap</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">nCap</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">lBiscuit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.3048</span><span class="p">,</span>
+                             <span class="mf">0.3048</span><span class="p">,</span> <span class="mf">0.2820</span><span class="p">,</span> <span class="mf">0.2450</span><span class="p">,</span> <span class="mf">0.2080</span><span class="p">,</span> <span class="mf">0.1709</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">lBiscuit</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">lBiscuit</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">yN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">yN</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">yN</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+
+        <span class="n">yE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5000</span><span class="p">,</span> <span class="mf">1.5000</span><span class="p">,</span> <span class="mf">2.5000</span><span class="p">,</span> <span class="mf">3.5000</span><span class="p">,</span> <span class="mf">4.5000</span><span class="p">,</span>
+                       <span class="mf">5.5000</span><span class="p">,</span> <span class="mf">6.5000</span><span class="p">,</span> <span class="mf">7.5000</span><span class="p">,</span> <span class="mf">8.5000</span><span class="p">,</span> <span class="mf">9.5000</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">relative_err</span><span class="p">(</span><span class="n">yE</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">yE</span><span class="p">),</span> <span class="n">tol</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AtlasTestProperties.test_sparProperties"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.AtlasTestProperties.test_sparProperties">[docs]</a>    <span class="k">def</span> <span class="nf">test_sparProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">SparProperties</span><span class="p">()</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">yN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">14.5057</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1016</span><span class="p">,</span> <span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.6109</span><span class="p">,</span> <span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">nTube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">nCap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">lBiscuit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.3048</span><span class="p">,</span> <span class="p">])</span>
+        <span class="c">#comp.CFRPType = 1</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;NCT301-1X HS40 G150 33 +/-2%RW&#39;</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.0001</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">EIx</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">23704.383</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">EIz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">23704.383</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">EA</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">18167620.0</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">GJ</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">2.2828e4</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">mSpar</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">4.7244</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AtlasTestProperties.test_chordProperties"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_properties.AtlasTestProperties.test_chordProperties">[docs]</a>    <span class="k">def</span> <span class="nf">test_chordProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">ChordProperties</span><span class="p">()</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">yN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.2729</span><span class="p">,</span> <span class="mf">1.3903</span><span class="p">,</span> <span class="mf">1.1757</span><span class="p">,</span> <span class="mf">1.0176</span><span class="p">,</span> <span class="mf">0.8818</span><span class="p">,</span> <span class="mf">0.7602</span><span class="p">,</span> <span class="mf">0.6507</span><span class="p">,</span> <span class="mf">0.5528</span><span class="p">,</span> <span class="mf">0.4666</span><span class="p">,</span> <span class="mf">0.3925</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0843</span><span class="p">,</span> <span class="mf">0.0780</span><span class="p">,</span> <span class="mf">0.0718</span><span class="p">,</span> <span class="mf">0.0655</span><span class="p">,</span> <span class="mf">0.0592</span><span class="p">,</span> <span class="mf">0.0530</span><span class="p">,</span> <span class="mf">0.0477</span><span class="p">,</span> <span class="mf">0.0431</span><span class="p">,</span> <span class="mf">0.0384</span><span class="p">,</span> <span class="mf">0.0338</span><span class="p">])</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">GWing</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">xtU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">,</span> <span class="mf">0.1500</span><span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.001</span>
+        <span class="n">expected_mChord</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.018497</span><span class="p">,</span> <span class="mf">0.167168</span><span class="p">,</span> <span class="mf">0.133574</span><span class="p">,</span> <span class="mf">0.110904</span><span class="p">,</span> <span class="mf">0.092785</span><span class="p">,</span> <span class="mf">0.077596</span><span class="p">,</span> <span class="mf">0.064695</span><span class="p">,</span> <span class="mf">0.053795</span><span class="p">,</span> <span class="mf">0.044734</span><span class="p">,</span> <span class="mf">0.037342</span><span class="p">]</span>
+        <span class="n">expected_xCGChord</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.37481</span><span class="p">,</span> <span class="mf">0.29252</span><span class="p">,</span> <span class="mf">0.29447</span><span class="p">,</span> <span class="mf">0.29634</span><span class="p">,</span> <span class="mf">0.29838</span><span class="p">,</span> <span class="mf">0.30073</span><span class="p">,</span> <span class="mf">0.30350</span><span class="p">,</span> <span class="mf">0.30677</span><span class="p">,</span> <span class="mf">0.31059</span><span class="p">,</span> <span class="mf">0.31498</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">e_mChord</span><span class="p">,</span> <span class="n">e_xCGChord</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">expected_mChord</span><span class="p">,</span> <span class="n">expected_xCGChord</span><span class="p">)):</span>
+            <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">mChord</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">e_mChord</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+            <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">xCGChord</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">e_xCGChord</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

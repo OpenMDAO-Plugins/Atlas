@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.coefficients &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.coefficients</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Component</span>
+<span class="kn">from</span> <span class="nn">openmdao.lib.datatypes.api</span> <span class="kn">import</span> <span class="n">Float</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+
+
+<div class="viewcode-block" id="frictionCoefficient"><a class="viewcode-back" href="../../srcdocs.html#Atlas.coefficients.frictionCoefficient">[docs]</a><span class="k">def</span> <span class="nf">frictionCoefficient</span><span class="p">(</span><span class="n">Re</span><span class="p">,</span> <span class="n">xtc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes Cf of a flat plate at Re, with xtc fraction of laminar flow</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Fully turbulent</span>
+    <span class="k">if</span> <span class="n">xtc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">Cfflat</span> <span class="o">=</span> <span class="mf">0.072</span><span class="o">/</span><span class="p">(</span><span class="n">Re</span><span class="p">)</span><span class="o">**</span><span class="mf">0.2</span>
+    <span class="c"># Fully laminar</span>
+    <span class="k">elif</span> <span class="n">xtc</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">Cfflat</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.328</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Re</span><span class="p">))</span>
+    <span class="c"># Partially laminar</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Cflam</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.328</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Re</span><span class="p">))</span><span class="o">*</span><span class="n">xtc</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>             <span class="c"># Cf of laminar part</span>
+        <span class="n">deltalamc</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Re</span><span class="p">))</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xtc</span><span class="p">)</span>               <span class="c"># boundary layer thickness, delta/c, of laminar part</span>
+        <span class="n">deltaturbc</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.13</span><span class="o">/</span><span class="mf">0.097</span><span class="p">)</span><span class="o">*</span><span class="n">deltalamc</span>              <span class="c"># boundary layer thickness, delta/c, of turbulent part</span>
+        <span class="n">x0c</span> <span class="o">=</span> <span class="n">xtc</span> <span class="o">-</span> <span class="p">(</span><span class="n">Re</span><span class="o">**</span><span class="mf">0.2</span><span class="o">*</span><span class="n">deltaturbc</span><span class="o">/</span><span class="mf">0.375</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mf">0.8</span><span class="p">)</span>  <span class="c"># imaginary start point of turbulent BL</span>
+        <span class="n">CfturbFull</span> <span class="o">=</span> <span class="mf">0.072</span><span class="o">/</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">x0c</span><span class="p">)</span><span class="o">*</span><span class="n">Re</span><span class="p">)</span><span class="o">**</span><span class="mf">0.2</span>             <span class="c"># Cf of flat plate of length c-x0</span>
+        <span class="n">CfturbStart</span> <span class="o">=</span> <span class="mf">0.072</span><span class="o">/</span><span class="p">((</span><span class="n">xtc</span><span class="o">-</span><span class="n">x0c</span><span class="p">)</span><span class="o">*</span><span class="n">Re</span><span class="p">)</span><span class="o">**</span><span class="mf">0.2</span>          <span class="c"># Cf of imaginary part of turb BL</span>
+        <span class="n">Cfturb</span> <span class="o">=</span> <span class="p">(</span><span class="n">CfturbFull</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x0c</span><span class="p">)</span> <span class="o">-</span> <span class="n">CfturbStart</span><span class="o">*</span><span class="p">(</span><span class="n">xtc</span><span class="o">-</span><span class="n">x0c</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">xtc</span><span class="p">)</span>  <span class="c"># Cf of turbulent part</span>
+        <span class="n">Cfflat</span> <span class="o">=</span> <span class="n">Cflam</span><span class="o">*</span><span class="n">xtc</span> <span class="o">+</span> <span class="n">Cfturb</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">xtc</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Cfflat</span>
+
+</div>
+<div class="viewcode-block" id="DragCoefficient"><a class="viewcode-back" href="../../srcdocs.html#Atlas.coefficients.DragCoefficient">[docs]</a><span class="k">class</span> <span class="nc">DragCoefficient</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes drag coefficient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Re</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;description&#39;</span><span class="p">)</span>
+    <span class="n">tc</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;description&#39;</span><span class="p">)</span>
+    <span class="n">xtcU</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;description&#39;</span><span class="p">)</span>
+    <span class="n">xtcL</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;description&#39;</span><span class="p">)</span>
+
+    <span class="n">Cd</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;description&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DragCoefficient.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.coefficients.DragCoefficient.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CfU</span> <span class="o">=</span> <span class="n">frictionCoefficient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Re</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xtcU</span><span class="p">)</span>
+        <span class="n">CfL</span> <span class="o">=</span> <span class="n">frictionCoefficient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Re</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xtcL</span><span class="p">)</span>
+        <span class="n">Cfflat</span> <span class="o">=</span> <span class="p">(</span><span class="n">CfU</span> <span class="o">+</span> <span class="n">CfL</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Cd</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">Cfflat</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tc</span> <span class="o">+</span> <span class="mi">60</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

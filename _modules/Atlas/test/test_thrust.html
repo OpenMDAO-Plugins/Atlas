@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.test.test_thrust &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.test.test_thrust</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.util.testutil</span> <span class="kn">import</span> <span class="n">assert_rel_error</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">thrust</span>
+
+
+<div class="viewcode-block" id="ThrustTestCase"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_thrust.ThrustTestCase">[docs]</a><span class="k">class</span> <span class="nc">ThrustTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="ThrustTestCase.setup"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_thrust.ThrustTestCase.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="ThrustTestCase.test_induced_velocity"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_thrust.ThrustTestCase.test_induced_velocity">[docs]</a>    <span class="k">def</span> <span class="nf">test_induced_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">thrust</span><span class="o">.</span><span class="n">ActuatorDiskInducedVelocity</span><span class="p">()</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">vc</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="mf">1.1800</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="mf">10.</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="mf">1.5000</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">Ns</span>  <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">r</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span>
+            <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span>
+            <span class="mf">8.5</span><span class="p">,</span> <span class="mf">9.5</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">dT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.064902</span><span class="p">,</span> <span class="mf">1.588709</span><span class="p">,</span> <span class="mf">6.804887</span><span class="p">,</span> <span class="mf">11.255622</span><span class="p">,</span>
+            <span class="mf">15.785445</span><span class="p">,</span> <span class="mf">19.894067</span><span class="p">,</span> <span class="mf">23.261656</span><span class="p">,</span> <span class="mf">25.721612</span><span class="p">,</span>
+            <span class="mf">27.253708</span><span class="p">,</span> <span class="mf">18.644574</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">vi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.035025</span><span class="p">,</span> <span class="mf">0.100048</span><span class="p">,</span> <span class="mf">0.160388</span><span class="p">,</span> <span class="mf">0.174335</span><span class="p">,</span>
+            <span class="mf">0.182077</span><span class="p">,</span> <span class="mf">0.184890</span><span class="p">,</span> <span class="mf">0.183906</span><span class="p">,</span> <span class="mf">0.180033</span><span class="p">,</span>
+            <span class="mf">0.174075</span><span class="p">,</span> <span class="mf">0.136191</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">vi</span><span class="p">,</span> <span class="n">vi</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ThrustTestCase.test_thrust"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_thrust.ThrustTestCase.test_thrust">[docs]</a>    <span class="k">def</span> <span class="nf">test_thrust</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">thrust</span><span class="o">.</span><span class="n">Thrust</span><span class="p">()</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">yN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="mf">1.1800</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">ycmax</span> <span class="o">=</span> <span class="mf">1.4656</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">Omega</span> <span class="o">=</span> <span class="mf">1.0367</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.27293</span><span class="p">,</span> <span class="mf">1.39029</span><span class="p">,</span> <span class="mf">1.17568</span><span class="p">,</span>
+            <span class="mf">1.01762</span><span class="p">,</span> <span class="mf">0.88181</span><span class="p">,</span> <span class="mf">0.76021</span><span class="p">,</span>
+            <span class="mf">0.65066</span><span class="p">,</span> <span class="mf">0.55275</span><span class="p">,</span> <span class="mf">0.46665</span><span class="p">,</span>
+            <span class="mf">0.39253</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">Cl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">1.5000</span><span class="p">,</span>  <span class="mf">1.49868</span><span class="p">,</span> <span class="mf">1.46041</span><span class="p">,</span>
+            <span class="mf">1.42387</span><span class="p">,</span> <span class="mf">1.39404</span><span class="p">,</span> <span class="mf">1.36422</span><span class="p">,</span>
+            <span class="mf">1.33439</span><span class="p">,</span> <span class="mf">1.30456</span><span class="p">,</span> <span class="mf">1.27474</span><span class="p">,</span>
+            <span class="mf">0.82994</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">Ns</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">r</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span>
+            <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span>
+            <span class="mf">8.5</span><span class="p">,</span> <span class="mf">9.5</span>
+        <span class="p">])</span>
+
+        <span class="n">chordFrac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.5344</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+            <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">dT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mf">0.064902</span><span class="p">,</span> <span class="mf">1.588709</span><span class="p">,</span> <span class="mf">6.804887</span><span class="p">,</span> <span class="mf">11.255622</span><span class="p">,</span>
+            <span class="mf">15.785445</span><span class="p">,</span> <span class="mf">19.894067</span><span class="p">,</span> <span class="mf">23.261656</span><span class="p">,</span> <span class="mf">25.721612</span><span class="p">,</span>
+            <span class="mf">27.253708</span><span class="p">,</span> <span class="mf">18.644574</span><span class="p">,</span>
+        <span class="p">])</span>
+
+        <span class="n">comp</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">chordFrac</span><span class="p">,</span> <span class="n">chordFrac</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+        <span class="n">assert_rel_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp</span><span class="o">.</span><span class="n">dT</span><span class="p">,</span> <span class="n">dT</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

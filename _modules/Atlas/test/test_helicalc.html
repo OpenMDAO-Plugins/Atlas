@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.test.test_helicalc &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.test.test_helicalc</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">loadmat</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">HeliCalc</span><span class="p">,</span> <span class="n">Flags</span><span class="p">,</span> <span class="n">PrescribedLoad</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">set_as_top</span>
+
+
+<div class="viewcode-block" id="relative_err"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_helicalc.relative_err">[docs]</a><span class="k">def</span> <span class="nf">relative_err</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="Test_HeliCalc"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_helicalc.Test_HeliCalc">[docs]</a><span class="k">class</span> <span class="nc">Test_HeliCalc</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test the HeliCalc assembly against the HeliCalc.m module from the MATLAB model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Test_HeliCalc.test_HeliCalc"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_helicalc.Test_HeliCalc.test_HeliCalc">[docs]</a>    <span class="k">def</span> <span class="nf">test_HeliCalc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Test the HeliCalc assembly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">asm</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">HeliCalc</span><span class="p">())</span>
+
+        <span class="c"># populate inputs</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;HeliCalc.mat&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">struct_as_record</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mat_dtype</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">asm</span><span class="o">.</span><span class="n">config</span>
+
+        <span class="n">config</span><span class="o">.</span><span class="n">Ns</span>           <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Ns&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">ycmax</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;ycmax&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">rho</span>          <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;rho&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">visc</span>         <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;visc&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">vw</span>           <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;vw&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">vc</span>           <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;vc&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">R</span>            <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;R&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">b</span>            <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">h</span>            <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;h&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">Omega</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Omega&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">c</span>            <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;c_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">Cl</span>           <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Cl_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">Cm</span>           <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Cm_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">t</span>            <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;t_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">xtU</span>          <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;xtU_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">xtL</span>          <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;xtL_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">yWire</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;yWire&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">zWire</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;zWire&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">tWire</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;tWire&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">TWire</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;TWire&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">TEtension</span>    <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;TEtension&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">xEA</span>          <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;xEA_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">d</span>            <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;d_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">theta</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;theta_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">nTube</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;nTube_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">nCap</span>         <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;nCap_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">lBiscuit</span>     <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;lBiscuit_&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">anhedral</span>     <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;anhedral&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">collective</span>   <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;collective&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">dQuad</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;dQuad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">thetaQuad</span>    <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;thetaQuad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">nTubeQuad</span>    <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;nTubeQuad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">lBiscuitQuad</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;lBiscuitQuad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">hQuad</span>        <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;hQuad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">mElseRotor</span>   <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;mElseRotor&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">mElseCentre</span>  <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;mElseCentre&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">mElseR</span>       <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;mElseR&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">mPilot</span>       <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;mPilot&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">config</span><span class="o">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">Flags</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">Cover</span>    <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="s">&#39;Cover&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">Quad</span>     <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="s">&#39;Quad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">Load</span>     <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="s">&#39;Load&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">wingWarp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="s">&#39;wingWarp&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">CFRPType</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="s">&#39;CFRPType&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">CFRPType</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;NCT301-1X HS40 G150 33 +/-2%RW&#39;</span>
+        <span class="k">elif</span> <span class="n">CFRPType</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;HexPly 6376 HTS-12K 268gsm 35%RW&#39;</span>
+        <span class="k">elif</span> <span class="n">CFRPType</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;MTM28-1/IM7-GP-145gsm 32 +/-2%Rw&#39;</span>
+        <span class="k">elif</span> <span class="n">CFRPType</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;HexPly 8552 IM7 160gsm 35%RW&#39;</span>
+        <span class="k">elif</span> <span class="n">CFRPType</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;NCT304-1 HR40 G80 40 +/-2%RW&#39;</span>
+        <span class="k">elif</span> <span class="n">CFRPType</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">CFRPType</span> <span class="o">=</span> <span class="s">&#39;MTM28-1B/M46J-140-37%RW&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Unable to decode CFRPType from MATLAB data&#39;</span><span class="p">)</span>
+
+        <span class="n">WireType</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="s">&#39;WireType&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">WireType</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">WireType</span> <span class="o">=</span> <span class="s">&#39;Pianowire&#39;</span>
+        <span class="k">elif</span> <span class="n">WireType</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">WireType</span> <span class="o">=</span> <span class="s">&#39;Vectran&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Unable to decode WireType from MATLAB data&#39;</span><span class="p">)</span>
+
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span> <span class="o">=</span> <span class="n">PrescribedLoad</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;presLoad&#39;</span><span class="p">][</span><span class="s">&#39;y&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span><span class="o">.</span><span class="n">pointZ</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;presLoad&#39;</span><span class="p">][</span><span class="s">&#39;pointZ&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span><span class="o">.</span><span class="n">pointM</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;presLoad&#39;</span><span class="p">][</span><span class="s">&#39;pointM&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span><span class="o">.</span><span class="n">distributedX</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;presLoad&#39;</span><span class="p">][</span><span class="s">&#39;distributedX&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span><span class="o">.</span><span class="n">distributedZ</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;presLoad&#39;</span><span class="p">][</span><span class="s">&#39;distributedZ&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">presLoad</span><span class="o">.</span><span class="n">distributedM</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;presLoad&#39;</span><span class="p">][</span><span class="s">&#39;distributedM&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c"># run</span>
+        <span class="n">asm</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="c"># check outputs</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;alphaJig&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">alphaJig</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;alphaJig[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">alphaJig</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;Ttot&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">Ttot</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Ttot is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">Ttot</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;Ptot&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">Ptot</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Ptot is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">Ptot</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;MomRot&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">MomRot</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;MomRot is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">MomRot</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;Mtot&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">Mtot</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Mtot is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">Mtot</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;mQuad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mQuad</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;mQuad is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mQuad</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;mCover&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mCover</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;mCover is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mCover</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;mWire&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mWire</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;mWire is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mWire</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;mSpar&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mSpar</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;mSpar[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mSpar</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;mChord&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mChord</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;mChord[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">mChord</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;Cl&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">Cl</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Cl[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">Cl</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;Cm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">aero2</span><span class="o">.</span><span class="n">Cm</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Cm[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">aero2</span><span class="o">.</span><span class="n">Cm</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;xtU&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">aero2</span><span class="o">.</span><span class="n">xtU</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;xtU[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">aero2</span><span class="o">.</span><span class="n">xtU</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;xtL&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">aero2</span><span class="o">.</span><span class="n">xtL</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;xtL[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">aero2</span><span class="o">.</span><span class="n">xtL</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;xEA&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">xEA</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;xEA[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">xEA</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;d&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;d[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;out&#39;</span><span class="p">][</span><span class="s">&#39;q&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s">&#39;q[</span><span class="si">%d</span><span class="s">] is </span><span class="si">%f</span><span class="s">, should be </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">asm</span><span class="o">.</span><span class="n">struc2</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="c"># TODO: could check all the other stuff in &#39;out&#39;, but the sub assemblies</span>
+        <span class="c">#       are tested elsewhere; the &#39;results&#39; data is the key objective here</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

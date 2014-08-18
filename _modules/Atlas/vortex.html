@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.vortex &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.vortex</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Component</span>
+<span class="kn">from</span> <span class="nn">openmdao.lib.datatypes.api</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Int</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">linspace</span><span class="p">,</span> <span class="n">sqrt</span>
+
+
+<div class="viewcode-block" id="VortexRing"><a class="viewcode-back" href="../../srcdocs.html#Atlas.vortex.VortexRing">[docs]</a><span class="k">class</span> <span class="nc">VortexRing</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Vortex ring calculations</span>
+<span class="sd">    Computes the induced velocity on the rotor blades given the</span>
+<span class="sd">    thrust distribution on the rotor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># inputs</span>
+    <span class="n">b</span>        <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of blades&#39;</span><span class="p">)</span>
+    <span class="n">Ns</span>       <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;number of elements&#39;</span><span class="p">)</span>
+    <span class="n">yN</span>       <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;node locations&#39;</span><span class="p">)</span>
+    <span class="n">rho</span>      <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;air density&#39;</span><span class="p">)</span>
+    <span class="n">vc</span>       <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;vertical velocity&#39;</span><span class="p">)</span>
+    <span class="n">Omega</span>    <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
+    <span class="n">h</span>        <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;height of rotor&#39;</span><span class="p">)</span>
+    <span class="n">dT</span>       <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;thrust&#39;</span><span class="p">)</span>
+    <span class="n">q</span>        <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;deformation&#39;</span><span class="p">)</span>
+    <span class="n">anhedral</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">)</span>
+
+    <span class="c"># outputs</span>
+    <span class="n">vi</span>       <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;induced velocity&#39;</span><span class="p">)</span>
+    <span class="n">Gamma</span>    <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;vortex strength&#39;</span><span class="p">)</span>
+    <span class="n">z</span>        <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">r</span>        <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">vz</span>       <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">vr</span>       <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VortexRing.execute"><a class="viewcode-back" href="../../srcdocs.html#Atlas.vortex.VortexRing.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">yE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">):</span>
+            <span class="n">dy</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>  <span class="c"># length of each element</span>
+            <span class="n">yE</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>  <span class="c"># radial location of each element</span>
+
+        <span class="c"># set fidelity</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span> <span class="o">==</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="n">Nw</span> <span class="o">=</span> <span class="mi">15</span>
+            <span class="n">Ntt</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">Ntheta</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">Nw</span> <span class="o">=</span> <span class="mi">8</span>
+            <span class="n">Ntt</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">Ntheta</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Nw</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">Ntt</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">Ntheta</span> <span class="o">=</span> <span class="mi">15</span>
+
+        <span class="c"># Break out deformations</span>
+        <span class="n">qq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">qq</span><span class="p">[:,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="o">*</span><span class="mi">6</span><span class="p">:</span><span class="n">s</span><span class="o">*</span><span class="mi">6</span><span class="o">+</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">qh</span> <span class="o">=</span> <span class="p">(</span><span class="n">qq</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">anhedral</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="n">cr</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">mean</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+        <span class="n">dtheta</span> <span class="o">=</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">Ntheta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="n">dtheta</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">pi</span> <span class="o">-</span> <span class="n">dtheta</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">Ntheta</span><span class="p">)</span>
+
+        <span class="c"># pre-allocate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vz</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vr</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vi</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c"># create nacent vortex rings</span>
+        <span class="n">GammaBound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dT</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Omega</span><span class="o">*</span><span class="n">yE</span><span class="p">)</span><span class="o">*</span><span class="n">dy</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">GammaBound</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">GammaBound</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">GammaBound</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">]</span> <span class="o">=</span> <span class="n">GammaBound</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="o">.</span><span class="n">T</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">qh</span><span class="p">[:]</span>
+
+        <span class="c"># free-wake time stepping</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c"># proceed with substeps</span>
+            <span class="k">for</span> <span class="n">tt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ntt</span><span class="p">):</span>
+                <span class="c"># Compute induced velocity on all ix(Ns+1) rings from all iix(Ns+1) rings</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nw</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>                          <span class="c"># for each disk</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>              <span class="c"># and for each ring on each disk</span>
+                        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>                 <span class="c"># add the velocity induced from each disk</span>
+                            <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>  <span class="c"># and each ring on each disk (inner ring cancels itself out)</span>
+                                <span class="n">zr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span>
+                                <span class="n">r</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span>
+                                <span class="n">zp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span>
+                                <span class="n">yp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span>
+
+                                <span class="n">M</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">dtheta</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">)</span>
+                                <span class="n">X2</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">r</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="n">Y2</span> <span class="o">=</span> <span class="p">(</span><span class="n">yp</span> <span class="o">-</span> <span class="n">r</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="n">Z2</span> <span class="o">=</span> <span class="p">(</span><span class="n">zp</span> <span class="o">-</span> <span class="n">zr</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="n">Normal</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">X2</span> <span class="o">+</span> <span class="n">Y2</span> <span class="o">+</span> <span class="n">Z2</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">iii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+                                    <span class="k">if</span> <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cr</span><span class="p">:</span>
+                                        <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">=</span> <span class="n">cr</span>
+                                <span class="n">Norm3</span> <span class="o">=</span> <span class="n">Normal</span><span class="o">**</span><span class="mi">3</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">vr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zp</span> <span class="o">-</span> <span class="n">zr</span><span class="p">)</span> <span class="o">/</span> <span class="n">Norm3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">vz</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vz</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">)</span> <span class="o">*</span> <span class="n">yp</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="n">Norm3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M</span>
+
+                                <span class="c"># ground effect ring</span>
+                                <span class="n">zr</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span>
+                                <span class="n">Z2</span> <span class="o">=</span> <span class="p">(</span><span class="n">zp</span> <span class="o">-</span> <span class="n">zr</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="n">Normal</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">X2</span> <span class="o">+</span> <span class="n">Y2</span> <span class="o">+</span> <span class="n">Z2</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">iii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+                                    <span class="k">if</span> <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cr</span><span class="p">:</span>
+                                        <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">=</span> <span class="n">cr</span>
+                                <span class="n">Norm3</span> <span class="o">=</span> <span class="n">Normal</span><span class="o">**</span><span class="mi">3</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">vr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zp</span> <span class="o">-</span> <span class="n">zr</span><span class="p">)</span> <span class="o">/</span> <span class="n">Norm3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">vz</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vz</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">)</span> <span class="o">*</span> <span class="n">yp</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="n">Norm3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M</span>
+
+                <span class="c"># Compute altitude and time power approximation</span>
+                <span class="c"># if tt == 0:</span>
+                <span class="c">#     PiApprox = 8 * np.sum(self.dT.dot(vi))</span>
+                <span class="c"># realtime = 2*pi / self.Omega / self.b * ((t-1) * Ntt + tt) / Ntt</span>
+                <span class="c"># altitude = self.vc * realtime</span>
+
+                <span class="c"># Convect rings downstream</span>
+                <span class="n">dt</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">/</span> <span class="n">Ntt</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>              <span class="c"># for each disk</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>  <span class="c"># and for each ring on each disk</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">vz</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span><span class="o">*</span><span class="n">dt</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">vr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span><span class="o">*</span><span class="n">dt</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span>
+
+            <span class="c"># Shift elements in ring array</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+
+            <span class="c"># Create nacent vortex rings</span>
+            <span class="n">GammaBound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dT</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Omega</span><span class="o">*</span><span class="n">yE</span><span class="p">)</span><span class="o">*</span><span class="n">dy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">GammaBound</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">GammaBound</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">GammaBound</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">]</span> <span class="o">=</span> <span class="n">GammaBound</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yN</span><span class="o">.</span><span class="n">T</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">qh</span><span class="p">[:]</span>
+
+        <span class="c"># Compute induced velocity on rotor (rp = [0 r(s) 0])</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">):</span>                <span class="c"># for each element</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vi</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nw</span><span class="p">):</span>                <span class="c"># add the velocity induced from each disk</span>
+                <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>  <span class="c"># and each ring on each disk (inner ring cancels itself out)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">ii</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                        <span class="n">ringFrac</span> <span class="o">=</span> <span class="mf">0.675</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ringFrac</span> <span class="o">=</span> <span class="mi">1</span>
+
+                    <span class="n">zr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span>
+                    <span class="n">r</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span>
+                    <span class="n">zp</span> <span class="o">=</span> <span class="p">(</span><span class="n">qh</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="n">qh</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+                    <span class="n">yp</span> <span class="o">=</span> <span class="n">yE</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+
+                    <span class="n">M</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">dtheta</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">)</span>
+                    <span class="n">X2</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">r</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+                    <span class="n">Y2</span> <span class="o">=</span> <span class="p">(</span><span class="n">yp</span> <span class="o">-</span> <span class="n">r</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+                    <span class="n">Z2</span> <span class="o">=</span> <span class="p">(</span><span class="n">zp</span> <span class="o">-</span> <span class="n">zr</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                    <span class="n">Normal</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">X2</span> <span class="o">+</span> <span class="n">Y2</span> <span class="o">+</span> <span class="n">Z2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">iii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cr</span><span class="p">:</span>
+                            <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">=</span> <span class="n">cr</span>
+                    <span class="n">Norm3</span> <span class="o">=</span> <span class="n">Normal</span><span class="o">**</span><span class="mi">3</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vi</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vi</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="n">ringFrac</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">)</span><span class="o">*</span><span class="n">yp</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="n">Norm3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M</span>
+
+                    <span class="c"># ground effect ring</span>
+                    <span class="n">zr</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ss</span><span class="p">]</span>
+                    <span class="n">Z2</span> <span class="o">=</span> <span class="p">(</span><span class="n">zp</span> <span class="o">-</span> <span class="n">zr</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                    <span class="n">Normal</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">X2</span> <span class="o">+</span> <span class="n">Y2</span> <span class="o">+</span> <span class="n">Z2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">iii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cr</span><span class="p">:</span>
+                            <span class="n">Normal</span><span class="p">[</span><span class="n">iii</span><span class="p">]</span> <span class="o">=</span> <span class="n">cr</span>
+                    <span class="n">Norm3</span> <span class="o">=</span> <span class="n">Normal</span><span class="o">**</span><span class="mi">3</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vi</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vi</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">-</span> <span class="n">ringFrac</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaArray</span><span class="p">)</span><span class="o">*</span><span class="n">yp</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="n">Norm3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M</span>
+
+        <span class="c"># vi is positive downwards</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vi</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vi</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

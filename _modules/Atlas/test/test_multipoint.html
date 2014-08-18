@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.test.test_multipoint &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.test.test_multipoint</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">nose</span> <span class="kn">import</span> <span class="n">SkipTest</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">Multipoint</span><span class="p">,</span> <span class="n">HeliOptM</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">set_as_top</span>
+
+
+<div class="viewcode-block" id="relative_err"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_multipoint.relative_err">[docs]</a><span class="k">def</span> <span class="nf">relative_err</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="Test_Multipoint"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_multipoint.Test_Multipoint">[docs]</a><span class="k">class</span> <span class="nc">Test_Multipoint</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test the MultiPoint assembly against the HeliOpt.m module from the MATLAB model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Test_Multipoint.test_Multipoint"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_multipoint.Test_Multipoint.test_Multipoint">[docs]</a>    <span class="k">def</span> <span class="nf">test_Multipoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Test the MultiPoint assembly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mp</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">Multipoint</span><span class="p">())</span>
+
+        <span class="c"># set inputs</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">alt_low</span>   <span class="o">=</span> <span class="mf">0.5</span>       <span class="c"># low altitude</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">alt_high</span>  <span class="o">=</span> <span class="mf">3.5</span>       <span class="c"># high altitude</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">alt_ratio</span> <span class="o">=</span> <span class="mf">35.</span><span class="o">/</span><span class="mf">60.</span>   <span class="c"># proportion of time near ground</span>
+
+        <span class="n">mp</span><span class="o">.</span><span class="n">TWire_high</span> <span class="o">=</span> <span class="mi">900</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">TWire_wind</span> <span class="o">=</span> <span class="mi">2100</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">TWire_grav</span> <span class="o">=</span> <span class="mi">110</span>
+
+        <span class="n">mp</span><span class="o">.</span><span class="n">OmegaRatio</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="n">mp</span><span class="o">.</span><span class="n">vw</span> <span class="o">=</span> <span class="mi">0</span><span class="o">/</span><span class="mf">3.6</span>
+
+        <span class="n">mp</span><span class="o">.</span><span class="n">Cl_max</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.4</span><span class="p">,</span> <span class="mf">1.35</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">]</span>  <span class="c"># max control</span>
+
+        <span class="n">mp</span><span class="o">.</span><span class="n">Omega_low</span>  <span class="o">=</span> <span class="mf">1.0512</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">Omega_high</span> <span class="o">=</span> <span class="mf">1.0771</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">Cl0_high</span>   <span class="o">=</span> <span class="mf">1.4000</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">Cl1_high</span>   <span class="o">=</span> <span class="mf">1.3000</span>
+
+        <span class="c"># run</span>
+        <span class="n">mp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="c"># check outputs against values from MATLAB code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">low</span><span class="o">.</span><span class="n">Ptot</span><span class="p">,</span>   <span class="mf">421.3185</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_low</span><span class="p">,</span>   <span class="mf">126.1670</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_low</span><span class="p">,</span>  <span class="mf">1236.4369</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">high</span><span class="o">.</span><span class="n">Ptot</span><span class="p">,</span>  <span class="mf">846.6429</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_high</span><span class="p">,</span>  <span class="mf">126.1670</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_high</span><span class="p">,</span> <span class="mf">1236.4369</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c"># Future Work:</span>
+        <span class="c"># self.assertAlmostEquals(mp.wind.Ptot, 1815.7617, 0)</span>
+        <span class="c"># self.assertAlmostEquals(mp.wind.Mtot,  126.1670, 0)</span>
+        <span class="c"># self.assertAlmostEquals(mp.wind.Ttot, 2239.7556, 0)</span>
+
+        <span class="c"># self.assertAlmostEquals(mp.grav.Ptot,   0.00000, 0)</span>
+        <span class="c"># self.assertAlmostEquals(mp.grav.Mtot,  126.1670, 0)</span>
+        <span class="c"># self.assertAlmostEquals(mp.grav.Ttot,   0.00000, 0)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="mf">598.537</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Test_Multipoint.test_HeliOptM"><a class="viewcode-back" href="../../../srcdocs.html#Atlas.test.test_multipoint.Test_Multipoint.test_HeliOptM">[docs]</a>    <span class="k">def</span> <span class="nf">test_HeliOptM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Test the multipoint optimization (HeliOptM) assembly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># comment the following line to run this test</span>
+        <span class="k">raise</span> <span class="n">SkipTest</span><span class="p">(</span><span class="s">&#39;Test skipped to save execution time&#39;</span><span class="p">)</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">HeliOptM</span><span class="p">())</span>
+
+        <span class="c"># run</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="c"># check results against values from MATLAB code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">P</span><span class="p">,</span>         <span class="mf">598.537</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Omega_low</span><span class="p">,</span>  <span class="mf">1.0512</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Omega_high</span><span class="p">,</span> <span class="mf">1.0771</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_low</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_low</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEquals</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Mtot_high</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">Ttot_high</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

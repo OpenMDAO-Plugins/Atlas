@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atlas.helicalc &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Atlas.helicalc</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">openmdao.main.api</span> <span class="kn">import</span> <span class="n">Assembly</span>
+
+<span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">AtlasConfiguration</span><span class="p">,</span> <span class="n">DiscretizeProperties</span><span class="p">,</span> \
+                  <span class="n">Aero</span><span class="p">,</span> <span class="n">Aero2</span><span class="p">,</span> <span class="n">Structures</span><span class="p">,</span> <span class="n">Results</span>
+
+
+<span class="c"># see: HeliCalc.m</span>
+
+<div class="viewcode-block" id="HeliCalc"><a class="viewcode-back" href="../../srcdocs.html#Atlas.helicalc.HeliCalc">[docs]</a><span class="k">class</span> <span class="nc">HeliCalc</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs an aerodynamic and structural computation on a single</span>
+<span class="sd">    configuration given the full set of design parameters. The aerodynamic</span>
+<span class="sd">    computation returns the thrust, torque, power, and induced velocity. The</span>
+<span class="sd">    structural computation first computes the mass of the helicopter based on</span>
+<span class="sd">    the structural description of the spars and chord lengths. It then</span>
+<span class="sd">    computes the deformation of the spars, the strains, and the resulting</span>
+<span class="sd">    factor of safety for each of the failure modes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HeliCalc.configure"><a class="viewcode-back" href="../../srcdocs.html#Atlas.helicalc.HeliCalc.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">,</span> <span class="n">AtlasConfiguration</span><span class="p">())</span>
+
+        <span class="c"># Take parameterized properties and get property for each element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;discrete&#39;</span><span class="p">,</span> <span class="n">DiscretizeProperties</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Ns&#39;</span><span class="p">,</span>           <span class="s">&#39;discrete.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.ycmax&#39;</span><span class="p">,</span>        <span class="s">&#39;discrete.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.R&#39;</span><span class="p">,</span>            <span class="s">&#39;discrete.R&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.c&#39;</span><span class="p">,</span>            <span class="s">&#39;discrete.c_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Cl&#39;</span><span class="p">,</span>           <span class="s">&#39;discrete.Cl_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Cm&#39;</span><span class="p">,</span>           <span class="s">&#39;discrete.Cm_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.t&#39;</span><span class="p">,</span>            <span class="s">&#39;discrete.t_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.xtU&#39;</span><span class="p">,</span>          <span class="s">&#39;discrete.xtU_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.xtL&#39;</span><span class="p">,</span>          <span class="s">&#39;discrete.xtL_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.xEA&#39;</span><span class="p">,</span>          <span class="s">&#39;discrete.xEA_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.yWire&#39;</span><span class="p">,</span>        <span class="s">&#39;discrete.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.d&#39;</span><span class="p">,</span>            <span class="s">&#39;discrete.d_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.theta&#39;</span><span class="p">,</span>        <span class="s">&#39;discrete.theta_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.nTube&#39;</span><span class="p">,</span>        <span class="s">&#39;discrete.nTube_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.nCap&#39;</span><span class="p">,</span>         <span class="s">&#39;discrete.nCap_in&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.lBiscuit&#39;</span><span class="p">,</span>     <span class="s">&#39;discrete.lBiscuit_in&#39;</span><span class="p">)</span>
+
+        <span class="c"># First run Aero calc with simple blade-element model. Lift is</span>
+        <span class="c"># accurate with this simple model since Cl is pre-defined</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;aero&#39;</span><span class="p">,</span> <span class="n">Aero</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.b&#39;</span><span class="p">,</span>            <span class="s">&#39;aero.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.R&#39;</span><span class="p">,</span>            <span class="s">&#39;aero.R&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Ns&#39;</span><span class="p">,</span>           <span class="s">&#39;aero.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.yN&#39;</span><span class="p">,</span>         <span class="s">&#39;aero.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.dr&#39;</span><span class="p">,</span>           <span class="s">&#39;aero.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.r&#39;</span><span class="p">,</span>            <span class="s">&#39;aero.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.h&#39;</span><span class="p">,</span>            <span class="s">&#39;aero.h&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.ycmax[0]&#39;</span><span class="p">,</span>     <span class="s">&#39;aero.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.rho&#39;</span><span class="p">,</span>          <span class="s">&#39;aero.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.visc&#39;</span><span class="p">,</span>         <span class="s">&#39;aero.visc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.vw&#39;</span><span class="p">,</span>           <span class="s">&#39;aero.vw&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.vc&#39;</span><span class="p">,</span>           <span class="s">&#39;aero.vc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Omega&#39;</span><span class="p">,</span>        <span class="s">&#39;aero.Omega&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.cE&#39;</span><span class="p">,</span>         <span class="s">&#39;aero.c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.Cl&#39;</span><span class="p">,</span>         <span class="s">&#39;aero.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.d&#39;</span><span class="p">,</span>          <span class="s">&#39;aero.d&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.yWire&#39;</span><span class="p">,</span>        <span class="s">&#39;aero.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.zWire&#39;</span><span class="p">,</span>        <span class="s">&#39;aero.zWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.tWire&#39;</span><span class="p">,</span>        <span class="s">&#39;aero.tWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.Cm&#39;</span><span class="p">,</span>         <span class="s">&#39;aero.Cm&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xtU&#39;</span><span class="p">,</span>        <span class="s">&#39;aero.xtU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xtL&#39;</span><span class="p">,</span>        <span class="s">&#39;aero.xtL&#39;</span><span class="p">)</span>
+
+        <span class="c"># Then run Structures calc (simply to determine the spar</span>
+        <span class="c"># deflection for accurate ground effect computation)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;struc&#39;</span><span class="p">,</span> <span class="n">Structures</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.flags&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.flags&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.yN&#39;</span><span class="p">,</span>         <span class="s">&#39;struc.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.d&#39;</span><span class="p">,</span>          <span class="s">&#39;struc.d&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.theta&#39;</span><span class="p">,</span>      <span class="s">&#39;struc.theta&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.nTube&#39;</span><span class="p">,</span>      <span class="s">&#39;struc.nTube&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.nCap&#39;</span><span class="p">,</span>       <span class="s">&#39;struc.nCap&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.lBiscuit&#39;</span><span class="p">,</span>   <span class="s">&#39;struc.lBiscuit&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Jprop&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.Jprop&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.b&#39;</span><span class="p">,</span>            <span class="s">&#39;struc.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.cE&#39;</span><span class="p">,</span>         <span class="s">&#39;struc.cE&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xEA&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.xEA&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xtU&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.xtU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.dQuad&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.dQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.thetaQuad&#39;</span><span class="p">,</span>    <span class="s">&#39;struc.thetaQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.nTubeQuad&#39;</span><span class="p">,</span>    <span class="s">&#39;struc.nTubeQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.lBiscuitQuad&#39;</span><span class="p">,</span> <span class="s">&#39;struc.lBiscuitQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.RQuad&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.RQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.hQuad&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.hQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.ycmax[0]&#39;</span><span class="p">,</span>     <span class="s">&#39;struc.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.yWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.zWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.zWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.tWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.tWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.TWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc.TWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.TEtension&#39;</span><span class="p">,</span>    <span class="s">&#39;struc.TEtension&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mElseRotor&#39;</span><span class="p">,</span>   <span class="s">&#39;struc.mElseRotor&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mElseCentre&#39;</span><span class="p">,</span>  <span class="s">&#39;struc.mElseCentre&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mElseR&#39;</span><span class="p">,</span>       <span class="s">&#39;struc.mElseR&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.R&#39;</span><span class="p">,</span>            <span class="s">&#39;struc.R&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mPilot&#39;</span><span class="p">,</span>       <span class="s">&#39;struc.mPilot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;aero.Fblade&#39;</span><span class="p">,</span>         <span class="s">&#39;struc.fblade&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.presLoad&#39;</span><span class="p">,</span>     <span class="s">&#39;struc.presLoad&#39;</span><span class="p">)</span>
+
+        <span class="c"># Then run Aero calc with more accurate Vortex method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;aero2&#39;</span><span class="p">,</span> <span class="n">Aero2</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.b&#39;</span><span class="p">,</span>            <span class="s">&#39;aero2.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.R&#39;</span><span class="p">,</span>            <span class="s">&#39;aero2.R&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Ns&#39;</span><span class="p">,</span>           <span class="s">&#39;aero2.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.yN&#39;</span><span class="p">,</span>         <span class="s">&#39;aero2.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.dr&#39;</span><span class="p">,</span>           <span class="s">&#39;aero2.dr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.r&#39;</span><span class="p">,</span>            <span class="s">&#39;aero2.r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.h&#39;</span><span class="p">,</span>            <span class="s">&#39;aero2.h&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.ycmax[0]&#39;</span><span class="p">,</span>     <span class="s">&#39;aero2.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.rho&#39;</span><span class="p">,</span>          <span class="s">&#39;aero2.rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.visc&#39;</span><span class="p">,</span>         <span class="s">&#39;aero2.visc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.vw&#39;</span><span class="p">,</span>           <span class="s">&#39;aero2.vw&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.vc&#39;</span><span class="p">,</span>           <span class="s">&#39;aero2.vc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Omega&#39;</span><span class="p">,</span>        <span class="s">&#39;aero2.Omega&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.cE&#39;</span><span class="p">,</span>         <span class="s">&#39;aero2.c&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.Cl&#39;</span><span class="p">,</span>         <span class="s">&#39;aero2.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.d&#39;</span><span class="p">,</span>          <span class="s">&#39;aero2.d&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.yWire&#39;</span><span class="p">,</span>        <span class="s">&#39;aero2.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.zWire&#39;</span><span class="p">,</span>        <span class="s">&#39;aero2.zWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.tWire&#39;</span><span class="p">,</span>        <span class="s">&#39;aero2.tWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.Cm&#39;</span><span class="p">,</span>         <span class="s">&#39;aero2.Cm&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xtU&#39;</span><span class="p">,</span>        <span class="s">&#39;aero2.xtU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xtL&#39;</span><span class="p">,</span>        <span class="s">&#39;aero2.xtL&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;struc.q&#39;</span><span class="p">,</span>             <span class="s">&#39;aero2.q&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.anhedral&#39;</span><span class="p">,</span>     <span class="s">&#39;aero2.anhedral&#39;</span><span class="p">)</span>
+
+        <span class="c"># Perform structural calculation once more with more accurate idea of drag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;struc2&#39;</span><span class="p">,</span> <span class="n">Structures</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.flags&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.flags&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.yN&#39;</span><span class="p">,</span>         <span class="s">&#39;struc2.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.d&#39;</span><span class="p">,</span>          <span class="s">&#39;struc2.d&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.theta&#39;</span><span class="p">,</span>      <span class="s">&#39;struc2.theta&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.nTube&#39;</span><span class="p">,</span>      <span class="s">&#39;struc2.nTube&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.nCap&#39;</span><span class="p">,</span>       <span class="s">&#39;struc2.nCap&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.lBiscuit&#39;</span><span class="p">,</span>   <span class="s">&#39;struc2.lBiscuit&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Jprop&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.Jprop&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.b&#39;</span><span class="p">,</span>            <span class="s">&#39;struc2.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.cE&#39;</span><span class="p">,</span>         <span class="s">&#39;struc2.cE&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xEA&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.xEA&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.xtU&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.xtU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.dQuad&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.dQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.thetaQuad&#39;</span><span class="p">,</span>    <span class="s">&#39;struc2.thetaQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.nTubeQuad&#39;</span><span class="p">,</span>    <span class="s">&#39;struc2.nTubeQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.lBiscuitQuad&#39;</span><span class="p">,</span> <span class="s">&#39;struc2.lBiscuitQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.RQuad&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.RQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.hQuad&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.hQuad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.ycmax[0]&#39;</span><span class="p">,</span>     <span class="s">&#39;struc2.ycmax&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.yWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.yWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.zWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.zWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.tWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.tWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.TWire&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.TWire&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.TEtension&#39;</span><span class="p">,</span>    <span class="s">&#39;struc2.TEtension&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mElseRotor&#39;</span><span class="p">,</span>   <span class="s">&#39;struc2.mElseRotor&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mElseCentre&#39;</span><span class="p">,</span>  <span class="s">&#39;struc2.mElseCentre&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mElseR&#39;</span><span class="p">,</span>       <span class="s">&#39;struc2.mElseR&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.R&#39;</span><span class="p">,</span>            <span class="s">&#39;struc2.R&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.mPilot&#39;</span><span class="p">,</span>       <span class="s">&#39;struc2.mPilot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;aero2.Fblade&#39;</span><span class="p">,</span>        <span class="s">&#39;struc2.fblade&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.presLoad&#39;</span><span class="p">,</span>     <span class="s">&#39;struc2.presLoad&#39;</span><span class="p">)</span>
+
+        <span class="c"># calculate results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;results&#39;</span><span class="p">,</span> <span class="n">Results</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.b&#39;</span><span class="p">,</span>            <span class="s">&#39;results.b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.Ns&#39;</span><span class="p">,</span>           <span class="s">&#39;results.Ns&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.yN&#39;</span><span class="p">,</span>         <span class="s">&#39;results.yN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.yE&#39;</span><span class="p">,</span>         <span class="s">&#39;results.yE&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.cE&#39;</span><span class="p">,</span>         <span class="s">&#39;results.cE&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discrete.Cl&#39;</span><span class="p">,</span>         <span class="s">&#39;results.Cl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;struc2.q&#39;</span><span class="p">,</span>            <span class="s">&#39;results.q&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;aero2.phi&#39;</span><span class="p">,</span>           <span class="s">&#39;results.phi&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;config.collective&#39;</span><span class="p">,</span>   <span class="s">&#39;results.collective&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;aero2.Fblade&#39;</span><span class="p">,</span>        <span class="s">&#39;results.fblade&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;discrete&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;aero&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;struc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;aero2&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;struc2&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;results&#39;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Atlas 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
