@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Running the Atlas model (Single Design Point) &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="index.html" />
+    <link rel="next" title="Running the Atlas model (Multiple Design Points)" href="running_multi.html" />
+    <link rel="prev" title="Structure of the Atlas plugin" href="structure.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="running_multi.html" title="Running the Atlas model (Multiple Design Points)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="structure.html" title="Structure of the Atlas plugin"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Atlas 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="running-the-atlas-model-single-design-point">
+<h1>Running the Atlas model (Single Design Point)<a class="headerlink" href="#running-the-atlas-model-single-design-point" title="Permalink to this headline">¶</a></h1>
+<p>To run the full Atlas model single-point optimization, load the AtlasConfiguration
+and AeroStructural assemblies from the Atlas plugin. For this optimization,
+the objective will be to minimize total power with respect to
+the rotor speed, subject to the hovering constraint that lift must be greater or
+equal to weight.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">Atlas</span> <span class="kn">import</span> <span class="n">AtlasConfiguration</span><span class="p">,</span> <span class="n">AeroStructural</span>
+</pre></div>
+</div>
+<p>Next, we set up an AtlasConfiguration assembly that will take into account
+that the rotor speed Omega is a design variable.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ConfigOpt</span><span class="p">(</span><span class="n">AtlasConfiguration</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Atlas configuration for single point optimization &quot;&quot;&quot;</span>
+
+    <span class="c"># inputs for optimizer</span>
+    <span class="n">Omega_opt</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">iotype</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s">&#39;rotor angular velocity&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConfigOpt</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+        <span class="c"># use optimizer provided value for Omega</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Omega</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_opt</span>
+</pre></div>
+</div>
+<p>Similarly, define an AeroStructural assembly with passthroughs for variables
+relevant to the optimization problem. There are rotor speed, total mass, total
+lift, and total power.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">AeroStructuralOpt</span><span class="p">(</span><span class="n">AeroStructural</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; AeroStructural assembly for single point optimization &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AeroStructuralOpt</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
+
+        <span class="c"># replace config with optimizer driven config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">,</span> <span class="n">ConfigOpt</span><span class="p">())</span>
+
+        <span class="c"># create passthroughs for variables used by the optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;config.Omega_opt&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;struc.Mtot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ttot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_passthrough</span><span class="p">(</span><span class="s">&#39;results.Ptot&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, define an assembly that will to set up the optimization problem. This
+assembly will include the AeroStructural assembly defined above, along with
+an optimization driver, SNOPT. If SNOPT is not available, the optimization
+will fall back to SLSQP.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">HeliOpt</span><span class="p">(</span><span class="n">Assembly</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Single point aero-structural optimization &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># add an optimizer and an AeroStructural assembly</span>
+        <span class="k">if</span> <span class="n">pyopt_driver</span> <span class="ow">and</span> <span class="s">&#39;SNOPT&#39;</span> <span class="ow">in</span> <span class="n">pyopt_driver</span><span class="o">.</span><span class="n">_check_imports</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&quot;driver&quot;</span><span class="p">,</span> <span class="n">pyopt_driver</span><span class="o">.</span><span class="n">pyOptDriver</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="s">&quot;SNOPT&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="c"># any changes to default SNOPT options?</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;SNOPT not available, using SLSQP&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;driver&#39;</span><span class="p">,</span> <span class="n">SLSQPdriver</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;aso&#39;</span><span class="p">,</span> <span class="n">AeroStructuralOpt</span><span class="p">())</span>
+
+        <span class="c"># objective: minimize total power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s">&#39;aso.Ptot&#39;</span><span class="p">)</span>
+
+        <span class="c"># parameter: rotor speed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s">&#39;aso.Omega_opt&#39;</span><span class="p">,</span>
+                                  <span class="n">low</span><span class="o">=</span><span class="mf">0.15</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.25</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Omega_opt</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span>  <span class="c"># initial value</span>
+
+        <span class="c"># constraint: lift &gt;= weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="s">&#39;aso.Mtot*9.8-aso.Ttot&lt;=0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, from the <tt class="docutils literal"><span class="pre">makeplot.py</span></tt> file in the &#8220;examples&#8221; directory in the Atlas plugin source directory,
+load in the <cite>plot_single</cite> function. This function will generate a plot of model
+performance and structural deformation information.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">makeplot</span> <span class="kn">import</span> <span class="n">plot_single</span>
+</pre></div>
+</div>
+<p>To record data about the model to analyze following optimization, load in
+the JSONCaseRecorder from OpenMDAO:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">openmdao.lib.casehandlers.api</span> <span class="kn">import</span> <span class="n">JSONCaseRecorder</span>
+</pre></div>
+</div>
+<p>Now, we instantiate and run the optimization, then print the results:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">opt</span> <span class="o">=</span> <span class="n">set_as_top</span><span class="p">(</span><span class="n">HeliOpt</span><span class="p">())</span>
+
+<span class="n">opt</span><span class="o">.</span><span class="n">recorders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">JSONCaseRecorder</span><span class="p">(</span><span class="n">out</span><span class="o">=</span><span class="s">&#39;heli_opt.json&#39;</span><span class="p">))</span>
+<span class="n">opt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="k">print</span> <span class="s">&#39;Parameter:  Omega       =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Omega</span>
+<span class="k">print</span> <span class="s">&#39;Constraint: Weight-Lift =&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Mtot</span><span class="o">*</span><span class="mf">9.8</span><span class="o">-</span><span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Ttot</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Objective:  Ptot        =&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">aso</span><span class="o">.</span><span class="n">Ptot</span>
+
+<span class="kn">from</span> <span class="nn">openmdao.lib.casehandlers.api</span> <span class="kn">import</span> <span class="n">CaseDataset</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">CaseDataset</span><span class="p">(</span><span class="s">&#39;heli_opt.json&#39;</span><span class="p">,</span> <span class="s">&#39;json&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">by_case</span><span class="p">()</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+
+<span class="c"># plot baseline</span>
+<span class="n">plot_single</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c"># plot optimized</span>
+<span class="n">plot_single</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The plot_single() calls generate the following figures:</p>
+<p>Baseline:</p>
+<a class="reference internal image-reference" href="_images/plot0.png"><img alt="_images/plot0.png" class="align-center" src="_images/plot0.png" style="width: 850px;" /></a>
+<p>Optimized:</p>
+<a class="reference internal image-reference" href="_images/plot.png"><img alt="_images/plot.png" class="align-center" src="_images/plot.png" style="width: 850px;" /></a>
+<p>The full Atlas model can also be run by executing the <tt class="docutils literal"><span class="pre">heli_opt.py</span></tt> file in the
+&#8220;examples&#8221; directory.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="structure.html"
+                        title="previous chapter">Structure of the Atlas plugin</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="running_multi.html"
+                        title="next chapter">Running the Atlas model (Multiple Design Points)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/running.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="running_multi.html" title="Running the Atlas model (Multiple Design Points)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="structure.html" title="Structure of the Atlas plugin"
+             >previous</a> |</li>
+        <li><a href="index.html">Atlas 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

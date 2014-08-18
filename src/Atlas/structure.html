@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Structure of the Atlas plugin &mdash; Atlas 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Atlas 0.1 documentation" href="index.html" />
+    <link rel="next" title="Running the Atlas model (Single Design Point)" href="running.html" />
+    <link rel="prev" title="Overview of the Atlas model" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="running.html" title="Running the Atlas model (Single Design Point)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview of the Atlas model"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Atlas 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="structure-of-the-atlas-plugin">
+<h1>Structure of the Atlas plugin<a class="headerlink" href="#structure-of-the-atlas-plugin" title="Permalink to this headline">¶</a></h1>
+<p>The Atlas OpenMDAO plugin is organized in a hierarchical manner, separating
+structural from aeronautical analysis through the use of OpenMDAO assemblies.</p>
+<div class="section" id="aero">
+<h2>Aero()<a class="headerlink" href="#aero" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>Aero()</cite> assembly contains all components related to thrust, lift, drag, and
+induced velocity calculations, which together total 3 components.</p>
+<img alt="_images/aero.png" class="align-center" src="_images/aero.png" />
+</div>
+<div class="section" id="structures">
+<h2>Structures()<a class="headerlink" href="#structures" title="Permalink to this headline">¶</a></h2>
+<p>The &#8216;Structures()&#8217; assembly contains all components related to FEA, structural deformation,
+and materials properties, which together total 8 components.</p>
+<img alt="_images/struc.png" class="align-center" src="_images/struc.png" />
+</div>
+<div class="section" id="aerostructural">
+<h2>AeroStructural()<a class="headerlink" href="#aerostructural" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>AeroStructural()</cite> assembly contains both a low-fidelity and high fidelity
+<cite>Aero()</cite> instance, along with a <cite>Structures()</cite> instance.</p>
+<p>This assembly&#8217;s execution iterates twice between aero and structural disciplines.
+The low fidelity
+<cite>Aero()</cite> assembly computes induced velocity using a simple blade element model.
+Structural deformation is then computing by the <cite>Structures()</cite> assembly.
+This is then fed to a higher fidelity aero assembly, <cite>Aero2()</cite>, which uses a more
+accurate vortex wake calculation. Structural deformation is then computed one last time.</p>
+<p>The values for input parameters (and potential design variables) are set in
+the <cite>config()</cite> component, which propagates values throughout the rest of the
+assembly.</p>
+<p><cite>AeroStructural()</cite> also contains
+a <cite>DiscretizeProperties()</cite> component, which takes discretization parameters
+as input from <cite>config()</cite>, and outputs variables discretized in space (typically along the
+rotor blades).</p>
+<p>Finally, the <cite>results()</cite> component aggregates the final results of the
+assembly execution, and computes several values relevant to the objective and
+constraints for the optimization problem. These include total power, aerodynamic</p>
+<blockquote>
+<div>jig and dihedral angles.</div></blockquote>
+<img alt="_images/aerostruc.png" class="align-center" src="_images/aerostruc.png" />
+</div>
+<div class="section" id="atlasconfiguration">
+<h2>AtlasConfiguration()<a class="headerlink" href="#atlasconfiguration" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>AtlasConfiguration()</cite> component acts as the starting point for an
+optimization. It exposes design variables and configuration parameters, and
+propagates their values appropriately.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Structure of the Atlas plugin</a><ul>
+<li><a class="reference internal" href="#aero">Aero()</a></li>
+<li><a class="reference internal" href="#structures">Structures()</a></li>
+<li><a class="reference internal" href="#aerostructural">AeroStructural()</a></li>
+<li><a class="reference internal" href="#atlasconfiguration">AtlasConfiguration()</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview of the Atlas model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="running.html"
+                        title="next chapter">Running the Atlas model (Single Design Point)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/structure.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="running.html" title="Running the Atlas model (Single Design Point)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview of the Atlas model"
+             >previous</a> |</li>
+        <li><a href="index.html">Atlas 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright .
+      Last updated on Aug 18, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
