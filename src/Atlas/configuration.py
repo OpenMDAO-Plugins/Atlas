@@ -42,85 +42,87 @@ class PrescribedLoad(VariableTree):
 
 
 class AtlasConfiguration(Component):
-    ''' Atlas configuration
-    '''
-    # outputs (manual configuration)
-    flags = VarTree(Flags(), iotype='out')
+    """ Atlas configuration
+    """
 
-    b  = Int(2,  iotype='out', desc='number of blades')
-    Ns = Int(10, iotype='out', desc='number of elements')
-
-    R     = Float(10.0, iotype='out', desc='rotor radius')
-    H     = Float(0.5,  iotype='out', desc='height of aircraft')
-
-    ycmax = Array(np.array([1.4656, 3.2944]), iotype='out')
-
-    rho   = Float(1.18, iotype='out', desc='air density')
-    vw    = Float(0.0,  iotype='out', desc='wind velocity')
-    vc    = Float(0.0,  iotype='out', desc='vertical velocity')
-    visc  = Float(1.78e-5, iotype='out', desc='air viscosity')
-    Omega = Float(0.165*2*pi, iotype='out', desc='rotor angular velocity')
-
-    c     = Array(np.array([0, 0.8, 1.4, 0.4, 0.36]),  # ideal curve
-                iotype='out', desc='chord distribution')
-    d     = Array(np.array([3.442, 1.99, 1.239])*2.54/100,  # inches to meters
-                iotype='out', desc='spar diameter distribution')
-    Cl    = Array(np.array([1.5, 1.43, 1.23]),  # 0.5 m No canard lift distribution (as flown)
-                iotype='out', desc='lift coefficient distribution')
-    Cm    = Array(np.array([-0.15, -0.12, -0.12]),
-                iotype='out', desc='')
-    t     = Array(np.array([0.14, 0.14, 0.14]),
-                iotype='out', desc='')
-    xEA   = Array(np.array([0.27, 0.33, 0.24]),  # percent chord
-                iotype='out', desc='')
-    xtU   = Array(np.array([0.15, 7, 0.15]),
-                iotype='out', desc='fraction of laminar flow on the upper surface')
-    xtL   = Array(np.array([0.30, 7, 0.30]),
-                iotype='out', desc='fraction of laminar flow on the lower surface')
-
-    theta    = Array(np.array([20, 20, 20])*pi/180,  # deg to rad
-                iotype='out', desc='wrap angle')
-    nTube    = Array(np.array([4, 4, 4]),
-                iotype='out', desc='number of tube layers')
-    nCap     = Array(np.array([0, 0, 0]),
-                iotype='out', desc='number of cap strips')
-    lBiscuit = Array(np.array([12, 12, 6])*2.54/100,  # inches to meters
-                iotype='out', desc='unsupported biscuit length')
-
-    dQuad        = Float(4*2.54/100,  iotype='out', desc='diameter of quad rotor struts')
-    thetaQuad    = Float(35*pi/180,   iotype='out', desc='wrap angle of quad rotor struts')
-    nTubeQuad    = Int(4,             iotype='out', desc='number of CFRP layers in quad rotor struts')
-    lBiscuitQuad = Float(12*2.54/100, iotype='out', desc='')
-    hQuad        = Float(3.0,         iotype='out', desc='height of quad-rotor truss')
-
-    collective   = Float(0*pi/180, iotype='out', desc='collective angle in radians')
-    etaP         = Float(0.0, iotype='out', desc='')
-
-    yWire        = Array([5.8852], iotype='out', desc='location of wire attachment along span')  # actual spars
-    zWire        = Float(1.0,      iotype='out', desc='depth of wire attachement')
-    tWire        = Float(.0016,    iotype='out', desc='thickness of wire')  # steel
-    TWire        = Array([1100.],  iotype='out', desc='')
-    TEtension    = Float(50.0,     iotype='out', desc='')
-
-    anhedral     = Float(0.8*pi/180, iotype='out')
-
-    mElseRotor   = Float(5.11,    iotype='out', desc='')
-    mElseCentre  = Float(6.487+3, iotype='out', desc='')
-    mElseR       = Float(0.032,   iotype='out', desc='')
-    mPilot       = Float(71.0,    iotype='out', desc='mass of pilot (kg)')
-
-    # outputs (calculated)
-    yN    = Array(iotype='out', desc='node locations')
-    dr    = Array(iotype='out', desc='length of each element')
-    r     = Array(iotype='out', desc='radial location of each element')
-    RQuad = Float(iotype='out', desc='distance from centre of helicopter to centre of quad rotors')
-    h     = Float(iotype='out', desc='height of rotor')
-
-    Jprop    = VarTree(JointProperties(), iotype='out')
-    presLoad = VarTree(PrescribedLoad(), iotype='out')
-
-    def __init__(self):
+    def __init__(self, Ns):
         super(AtlasConfiguration, self).__init__()
+
+        # outputs (manual configuration)
+        self.add('flags', VarTree(Flags(), iotype='out'))
+
+        self.add('b',     Int(2,      iotype='out', desc='number of blades'))
+        self.add('Ns',    Int(Ns,     iotype='out', desc='number of elements'))
+
+        self.add('R',     Float(10.0, iotype='out', desc='rotor radius'))
+        self.add('H',     Float(0.5,  iotype='out', desc='height of aircraft'))
+
+        self.add('ycmax', Array(np.array([1.4656, 3.2944]), iotype='out'))
+
+        self.add('rho',   Float(1.18,       iotype='out', desc='air density'))
+        self.add('vw',    Float(0.0,        iotype='out', desc='wind velocity'))
+        self.add('vc',    Float(0.0,        iotype='out', desc='vertical velocity'))
+        self.add('visc',  Float(1.78e-5,    iotype='out', desc='air viscosity'))
+        self.add('Omega', Float(0.165*2*pi, iotype='out', desc='rotor angular velocity'))
+
+        self.add('c', Array(np.array([0, 0.8, 1.4, 0.4, 0.36]),  # ideal curve
+                    iotype='out', desc='chord distribution'))
+        self.add('d', Array(np.array([3.442, 1.99, 1.239])*2.54/100,  # inches to meters
+                    iotype='out', desc='spar diameter distribution'))
+        self.add('Cl', Array(np.array([1.5, 1.43, 1.23]),  # 0.5 m No canard lift distribution (as flown)
+                    iotype='out', desc='lift coefficient distribution'))
+        self.add('Cm', Array(np.array([-0.15, -0.12, -0.12]),
+                    iotype='out', desc=''))
+        self.add('t', Array(np.array([0.14, 0.14, 0.14]),
+                    iotype='out', desc=''))
+        self.add('xEA', Array(np.array([0.27, 0.33, 0.24]),  # percent chord
+                    iotype='out', desc=''))
+        self.add('xtU', Array(np.array([0.15, 7, 0.15]),
+                    iotype='out', desc='fraction of laminar flow on the upper surface'))
+        self.add('xtL', Array(np.array([0.30, 7, 0.30]),
+                    iotype='out', desc='fraction of laminar flow on the lower surface'))
+
+        self.add('theta', Array(np.array([20, 20, 20])*pi/180,  # deg to rad
+                    iotype='out', desc='wrap angle'))
+        self.add('nTube', Array(np.array([4, 4, 4]),
+                    iotype='out', desc='number of tube layers'))
+        self.add('nCap', Array(np.array([0, 0, 0]),
+                    iotype='out', desc='number of cap strips'))
+        self.add('lBiscuit', Array(np.array([12, 12, 6])*2.54/100,  # inches to meters
+                    iotype='out', desc='unsupported biscuit length'))
+
+        self.add('dQuad',        Float(4*2.54/100,  iotype='out', desc='diameter of quad rotor struts'))
+        self.add('thetaQuad',    Float(35*pi/180,   iotype='out', desc='wrap angle of quad rotor struts'))
+        self.add('nTubeQuad',    Int(4,             iotype='out', desc='number of CFRP layers in quad rotor struts'))
+        self.add('lBiscuitQuad', Float(12*2.54/100, iotype='out', desc=''))
+        self.add('hQuad',        Float(3.0,         iotype='out', desc='height of quad-rotor truss'))
+
+        self.add('collective',   Float(0*pi/180, iotype='out', desc='collective angle in radians'))
+        self.add('etaP',         Float(0.0,      iotype='out', desc=''))
+
+        self.add('yWire',        Array([5.8852], iotype='out', desc='location of wire attachment along span'))  # actual spars
+        self.add('zWire',        Float(1.0,      iotype='out', desc='depth of wire attachement'))
+        self.add('tWire',        Float(.0016,    iotype='out', desc='thickness of wire'))  # steel
+        self.add('TWire',        Array([1100.],  iotype='out', desc=''))
+        self.add('TEtension',    Float(50.0,     iotype='out', desc=''))
+
+        self.add('anhedral',     Float(0.8*pi/180, iotype='out'))
+
+        self.add('mElseRotor',   Float(5.11,    iotype='out', desc=''))
+        self.add('mElseCentre',  Float(6.487+3, iotype='out', desc=''))
+        self.add('mElseR',       Float(0.032,   iotype='out', desc=''))
+        self.add('mPilot',       Float(71.0,    iotype='out', desc='mass of pilot (kg)'))
+
+        # outputs (calculated)
+        self.add('yN',    Array(np.zeros(Ns+1), iotype='out', desc='node locations'))
+        self.add('dr',    Array(np.zeros(Ns),   iotype='out', desc='length of each element'))
+        self.add('r',     Array(np.zeros(Ns),   iotype='out', desc='radial location of each element'))
+
+        self.add('RQuad', Float(iotype='out', desc='distance from centre of helicopter to centre of quad rotors'))
+        self.add('h',     Float(iotype='out', desc='height of rotor'))
+
+        self.add('Jprop',   VarTree(JointProperties(), iotype='out'))
+        self.add('presLoad', VarTree(PrescribedLoad(), iotype='out'))
 
         # force execution, since there are no 'inputs'
         self.force_execute = True
@@ -145,46 +147,3 @@ class AtlasConfiguration(Component):
         self.Jprop.nTube = int(self.nTube[1])
         self.Jprop.nCap  = int(self.nCap[1])
         self.Jprop.lBiscuit = self.lBiscuit[1]
-
-    def display(self):
-        """ print values used in AeroStructural/HeliCalc (for debugging)
-        """
-        print 'Cl:', self.Cl
-        print 'Cm:', self.Cm
-        print 'Ns:', self.Ns
-        print 'Omega:', self.Omega
-        print 'R:', self.R
-        print 'TEtension:', self.TEtension
-        print 'TWire:', self.TWire
-        print 'anhedral:', self.anhedral
-        print 'b:', self.b
-        print 'c:', self.c
-        print 'collective:', self.collective
-        print 'dQuad:', self.dQuad
-        print 'd:', self.d
-        print 'etaP:', self.etaP
-        print 'h:', self.h
-        print 'hQuad:', self.hQuad
-        print 'lBiscuitQuad:', self.lBiscuitQuad
-        print 'lBiscuit:', self.lBiscuit
-        print 'mElseCentre:', self.mElseCentre
-        print 'mElseR:', self.mElseR
-        print 'mElseRotor:', self.mElseRotor
-        print 'mPilot:', self.mPilot
-        print 'nCap:', self.nCap
-        print 'nTubeQuad:', self.nTubeQuad
-        print 'nTube:', self.nTube
-        print 'rho:', self.rho
-        print 'tWire:', self.tWire
-        print 't:', self.t
-        print 'thetaQuad:', self.thetaQuad
-        print 'theta:', self.theta
-        print 'vc:', self.vc
-        print 'visc:', self.visc
-        print 'vw:', self.vw
-        print 'xEA:', self.xEA
-        print 'xtL:', self.xtL
-        print 'xtU:', self.xtU
-        print 'yWire:', self.yWire
-        print 'ycmax:', self.ycmax
-        print 'zWire:', self.zWire
