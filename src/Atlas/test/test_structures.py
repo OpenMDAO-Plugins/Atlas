@@ -338,7 +338,7 @@ class TestStructures(unittest.TestCase):
 
         comp.Finternal = data['Finternal']
 
-        comp.strain = Strain()
+        comp.strain = Strain(10)
         comp.strain.top       = data['strain']['top'][0][0]
         comp.strain.bottom    = data['strain']['bottom'][0][0]
         comp.strain.back      = data['strain']['back'][0][0]

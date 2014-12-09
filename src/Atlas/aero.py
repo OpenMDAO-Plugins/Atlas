@@ -8,6 +8,7 @@ from Atlas import VortexRingC as VortexRing  # use cython compiled version
 
 
 class Aero(Assembly):
+
     # inputs
     b     = Int(iotype="in",   desc="number of blades")
     R     = Float(iotype='in', desc='rotor radius')

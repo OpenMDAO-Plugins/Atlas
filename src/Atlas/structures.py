@@ -15,43 +15,68 @@ from lift_drag import Fblade
 # data structures used in structural calculations
 
 class Strain(VariableTree):
-    top    = Array(desc='')
-    bottom = Array(desc='')
-    back   = Array(desc='')
-    front  = Array(desc='')
 
-    bending_x = Array(desc='')
-    bending_z = Array(desc='')
-    axial_y   = Array(desc='')
-    torsion_y = Array(desc='')
+    def __init__(self, Ns):
+        super(Strain, self).__init__()
+
+        n0 = np.zeros((3, Ns+1))
+
+        self.add('top',    Array(n0, desc=''))
+        self.add('bottom', Array(n0, desc=''))
+        self.add('back',   Array(n0, desc=''))
+        self.add('front',  Array(n0, desc=''))
+
+        n0 = np.zeros((1, Ns+1))
+
+        self.add('bending_x', Array(n0, desc=''))
+        self.add('bending_z', Array(n0, desc=''))
+        self.add('axial_y',   Array(n0, desc=''))
+        self.add('torsion_y', Array(n0, desc=''))
 
 
 class MaterialFailure(VariableTree):
-    cap    = Array(desc='')
-    plus   = Array(desc='')
-    minus  = Array(desc='')
+
+    def __init__(self, Ns):
+        super(MaterialFailure, self).__init__()
+
+        n0 = np.zeros((3, Ns+1))
+
+        self.add('cap',   Array(n0, desc=''))
+        self.add('plus',  Array(n0, desc=''))
+        self.add('minus', Array(n0, desc=''))
 
 
 class BucklingFailure(VariableTree):
-    x = Array(desc='Euler Buckling failure in main spar from wire force')
-    z = Array(desc='Euler Buckling failure in main spar from wire force')
-    torsion = Array(desc='Torsional Buckling failure')
+
+    def __init__(self, Ns):
+        super(BucklingFailure, self).__init__()
+
+        n0 = np.zeros(Ns+1)
+
+        self.add('x', Array(n0, desc='Euler Buckling failure in main spar from wire force'))
+        self.add('z', Array(n0, desc='Euler Buckling failure in main spar from wire force'))
+
+        self.add('torsion', Array(n0, desc='Torsional Buckling failure'))
 
 
 class Failure(VariableTree):
-    top    = VarTree(MaterialFailure())
-    bottom = VarTree(MaterialFailure())
-    back   = VarTree(MaterialFailure())
-    front  = VarTree(MaterialFailure())
 
-    buckling = VarTree(BucklingFailure())
+    def __init__(self, Ns):
+        super(Failure, self).__init__()
 
-    quad_buckling = Float(desc='Quad Buckling failure')
-    quad_bend     = Float(desc='Quad bending moment failure')
-    quad_torsion  = Float(desc='Quad torsional material failure')
-    quad_torbuck  = Float(desc='Quad torsional buckling failure')
+        self.add('top',    VarTree(MaterialFailure(Ns)))
+        self.add('bottom', VarTree(MaterialFailure(Ns)))
+        self.add('back',   VarTree(MaterialFailure(Ns)))
+        self.add('front',  VarTree(MaterialFailure(Ns)))
 
-    wire = Array(desc='Wire tensile failure')
+        self.add('buckling', VarTree(BucklingFailure(Ns)))
+
+        self.add('quad_buckling', Float(0., desc='Quad Buckling failure'))
+        self.add('quad_bend',     Float(0., desc='Quad bending moment failure'))
+        self.add('quad_torsion',  Float(0., desc='Quad torsional material failure'))
+        self.add('quad_torbuck',  Float(0., desc='Quad torsional buckling failure'))
+
+        self.add('wire', Array([0.], desc='Wire tensile failure'))
 
 
 # components that perform structural calculations
@@ -396,7 +421,7 @@ class Strains(Component):
         # outputs
         self.add('Finternal', Array(i0, iotype='out', desc='internal forces'))
 
-        self.add('strain',    VarTree(Strain(), iotype='out', desc='strains'))
+        self.add('strain',    VarTree(Strain(Ns), iotype='out', desc='strains'))
 
     def execute(self):
         # short alias
@@ -410,7 +435,7 @@ class Strains(Component):
         Ftemp = np.zeros((12, Ns))
         Finternal = np.zeros((6, Ns+1))
 
-        strain = Strain()
+        strain = Strain(Ns)
         strain.top    = np.zeros((3, Ns+1))
         strain.bottom = np.zeros((3, Ns+1))
         strain.back   = np.zeros((3, Ns+1))
@@ -519,7 +544,7 @@ class Failures(Component):
         self.add('yN',           Array(y0, iotype='in', desc=''))
 
         self.add('Finternal',    Array(i0, iotype='in', desc=''))
-        self.add('strain',       VarTree(Strain(), iotype='in'))
+        self.add('strain',       VarTree(Strain(Ns), iotype='in'))
 
         self.add('d',            Array(n0, iotype='in', desc=''))
         self.add('theta',        Array(n0, iotype='in', desc=''))
@@ -552,7 +577,7 @@ class Failures(Component):
         self.add('mElseRotor',   Float(0., iotype='in', desc=''))
 
         # outputs
-        self.add('fail',         VarTree(Failure(), iotype='out'))
+        self.add('fail',         VarTree(Failure(Ns), iotype='out'))
 
     def execute(self):
         # Compute factor of safety for each failure mode
@@ -612,7 +637,7 @@ class Failures(Component):
 
         Ns = max(yN.shape) - 1  # number of elements
 
-        fail = Failure()
+        fail = Failure(Ns)
 
         # Material failure
         fail.top    = self.material_failure(Ns, strain.top,    theta, nCap, flags)
@@ -635,8 +660,8 @@ class Failures(Component):
             if yN[s] <= yWire:
                 critical_load_x = pi**2 * EIxJ / (k * L)**2
                 critical_load_z = pi**2 * EIzJ / (k * L)**2
-                fail.buckling.x[s] = kk * F / critical_load_x
-                fail.buckling.z[s] = kk * F / critical_load_z
+                fail.buckling.x[s] = kk * F / critical_load_x[0]  # FIXME!!!!!!
+                fail.buckling.z[s] = kk * F / critical_load_z[0]  # FIXME!!!!!!
             else:
                 fail.buckling.x[s] = 0
                 fail.buckling.z[s] = 0
@@ -695,10 +720,7 @@ class Failures(Component):
         self.fail = fail
 
     def material_failure(self,  Ns, strain, theta, nCap, flags):
-        failure = MaterialFailure()
-        failure.cap = np.zeros((3, Ns+1))
-        failure.plus = np.zeros((3, Ns+1))
-        failure.minus = np.zeros((3, Ns+1))
+        failure = MaterialFailure(Ns)
 
         # Material Properties
         tube_props = prepreg_properties[flags.CFRPType]
@@ -722,10 +744,7 @@ class Failures(Component):
         Q_CAP[1, 0] = Q_CAP[0, 1]
         Q_CAP[2, 2] = cap_props['G_12']
 
-        stress = MaterialFailure()
-        stress.cap = np.zeros((3, Ns))
-        stress.plus = np.zeros((3, Ns))
-        stress.minus = np.zeros((3, Ns))
+        stress = MaterialFailure(Ns)
 
         for s in range(Ns):
             # Compute stresses in structural axes for each lamina angle

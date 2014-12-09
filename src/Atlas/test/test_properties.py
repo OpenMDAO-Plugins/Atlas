@@ -148,7 +148,7 @@ class AtlasTestProperties(unittest.TestCase):
         assert_rel_error(self, comp.mSpar[0], 4.7244, tol)
 
     def test_chordProperties(self):
-        comp = ChordProperties()
+        comp = ChordProperties(10)
         comp.yN = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=np.float64)
         comp.c = np.array([0.2729, 1.3903, 1.1757, 1.0176, 0.8818, 0.7602, 0.6507, 0.5528, 0.4666, 0.3925])
         comp.d = np.array([0.0843, 0.0780, 0.0718, 0.0655, 0.0592, 0.0530, 0.0477, 0.0431, 0.0384, 0.0338])
