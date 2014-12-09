@@ -14,7 +14,7 @@ class AeroTestCase(unittest.TestCase):
         """ test Aero
             (with simple actuator disk method for induced velocity calculation)
         """
-        comp = Aero()
+        comp = Aero(10)
 
         # populate inputs
         path = os.path.join(os.path.dirname(__file__), 'aero.mat')
@@ -99,7 +99,7 @@ class AeroTestCase(unittest.TestCase):
         """ test Aero2
             (with vortex method for induced velocity calculation)
         """
-        comp = Aero2()
+        comp = Aero2(10)
 
         # populate inputs
         path = os.path.join(os.path.dirname(__file__), 'aero2.mat')

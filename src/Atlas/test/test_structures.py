@@ -102,7 +102,7 @@ class TestStructures(unittest.TestCase):
         comp.cE  = data['cE']
         comp.xEA = data['xEA']
 
-        comp.fblade = Fblade()
+        comp.fblade = Fblade(10)
         comp.fblade.Fx = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My = data['Fblade']['My'][0][0].flatten()
@@ -372,7 +372,7 @@ class TestStructures(unittest.TestCase):
         comp.TEtension    = data['TEtension'][0][0]
 
         comp.b          = int(data['b'][0][0])
-        comp.fblade     = Fblade()
+        comp.fblade     = Fblade(10)
         comp.fblade.Fx  = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz  = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My  = data['Fblade']['My'][0][0].flatten()
@@ -468,7 +468,7 @@ class TestStructures(unittest.TestCase):
         comp.R           = data['R'][0][0]
         comp.mPilot      = data['mPilot'][0][0]
 
-        comp.fblade = Fblade()
+        comp.fblade = Fblade(10)
         comp.fblade.Fx = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My = data['Fblade']['My'][0][0].flatten()

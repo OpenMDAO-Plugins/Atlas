@@ -15,7 +15,7 @@ def absolute_err(x, y):
 class AtlasTestLiftDrag(unittest.TestCase):
 
     def test_LiftDrag(self):
-        comp = LiftDrag()
+        comp = LiftDrag(10)
 
         # set inputs
         comp.Ns = 10

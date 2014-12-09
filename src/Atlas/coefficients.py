@@ -4,8 +4,7 @@ from math import sqrt
 
 
 def frictionCoefficient(Re, xtc):
-    """
-    Computes Cf of a flat plate at Re, with xtc fraction of laminar flow
+    """ Computes Cf of a flat plate at Re, with xtc fraction of laminar flow
     """
     # Fully turbulent
     if xtc == 0:
@@ -28,15 +27,14 @@ def frictionCoefficient(Re, xtc):
 
 
 class DragCoefficient(Component):
+    """ Computes drag coefficient
     """
-    Computes drag coefficient
-    """
-    Re = Float(0.0, iotype='in', desc='description')
-    tc = Float(0.0, iotype='in', desc='description')
-    xtcU = Float(0.0, iotype='in', desc='description')
-    xtcL = Float(0.0, iotype='in', desc='description')
+    Re   = Float(0., iotype='in', desc='description')
+    tc   = Float(0., iotype='in', desc='description')
+    xtcU = Float(0., iotype='in', desc='description')
+    xtcL = Float(0., iotype='in', desc='description')
 
-    Cd = Float(0.0, iotype='out', desc='description')
+    Cd   = Float(0., iotype='out', desc='description')
 
     def execute(self):
         CfU = frictionCoefficient(self.Re, self.xtcU)

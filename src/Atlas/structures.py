@@ -168,7 +168,7 @@ class FEM(Component):
         self.add('cE',       Array(n0, iotype='in', desc='chord of each element'))
         self.add('xEA',      Array(n0, iotype='in', desc=''))
 
-        self.add('fblade',   VarTree(Fblade(), iotype='in'))
+        self.add('fblade',   VarTree(Fblade(Ns), iotype='in'))
 
         self.add('mSpar',    Array(n0, iotype='in', desc='mass of spars'))
         self.add('mChord',   Array(n0, iotype='in', desc='mass of chords'))
@@ -571,7 +571,7 @@ class Failures(Component):
 
         # all this to get TQuad... maybe should be split out
         self.add('b',            Int(0,    iotype='in', desc='number of blades'))
-        self.add('fblade',       VarTree(Fblade(), iotype='in'))
+        self.add('fblade',       VarTree(Fblade(Ns), iotype='in'))
         self.add('mSpar',        Array(n0, iotype='in', desc='mass of spars'))
         self.add('mChord',       Array(n0, iotype='in', desc='mass of chords'))
         self.add('mElseRotor',   Float(0., iotype='in', desc=''))
@@ -985,7 +985,7 @@ class Structures(Assembly):
         self.add('mPilot',       Float(0., iotype='in', desc='mass of pilot'))
 
         # inputs for FEM
-        self.add('fblade',       VarTree(Fblade(), iotype='in'))
+        self.add('fblade',       VarTree(Fblade(Ns), iotype='in'))
         self.add('presLoad',     VarTree(PrescribedLoad(), iotype='in'))
 
         # configure
