@@ -12,6 +12,8 @@ from openmdao.util.log import enable_trace  # , disable_trace
 
 
 class Results(Component):
+    """ collect/calculate results from aerostructural computation
+    """
 
     def __init__(self, Ns):
         super(Results, self).__init__()
@@ -109,9 +111,9 @@ class AeroStructural(Assembly):
     """
 
     def __init__(self, Ns):
-        super(Switch, self).__init__()
+        super(AeroStructural, self).__init__()
 
-        # configure
+        # configuration
         self.add('config', AtlasConfiguration(Ns))
 
         # Take parameterized properties and get property for each element

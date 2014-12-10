@@ -19,7 +19,7 @@ class Test_Multipoint(unittest.TestCase):
     def test_Multipoint(self):
         """ Test the MultiPoint assembly
         """
-        mp = set_as_top(Multipoint())
+        mp = set_as_top(Multipoint(10))
 
         # set inputs
         mp.alt_low   = 0.5       # low altitude
@@ -70,7 +70,7 @@ class Test_Multipoint(unittest.TestCase):
         # comment the following line to run this test
         raise SkipTest('Test skipped to save execution time')
 
-        opt = set_as_top(HeliOptM())
+        opt = set_as_top(HeliOptM(10))
 
         # run
         opt.run()
