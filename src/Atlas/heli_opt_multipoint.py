@@ -333,7 +333,7 @@ class HeliOptM(Assembly):
 
         self.mp.vw = 0/3.6   # zero
 
-        self.mp.Cl_max = [1.4, 1.35, 1.55]    # max control
+        self.mp.Cl_max = [1.4, 1.35, 1.55, 0., 0., 0., 0., 0., 0., 0.]  # max control
 
         # objective: minimize total power
         self.driver.add_objective('mp.P')

@@ -34,7 +34,7 @@ class Test_Multipoint(unittest.TestCase):
 
         mp.vw = 0/3.6
 
-        mp.Cl_max = [1.4, 1.35, 1.55]  # max control
+        mp.Cl_max = [1.4, 1.35, 1.55, 0., 0., 0., 0., 0., 0., 0.]  # max control
 
         mp.Omega_low  = 1.0512
         mp.Omega_high = 1.0771
