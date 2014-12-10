@@ -660,8 +660,8 @@ class Failures(Component):
             if yN[s] <= yWire:
                 critical_load_x = pi**2 * EIxJ / (k * L)**2
                 critical_load_z = pi**2 * EIzJ / (k * L)**2
-                fail.buckling.x[s] = kk * F / critical_load_x[0]  # FIXME!!!!!!
-                fail.buckling.z[s] = kk * F / critical_load_z[0]  # FIXME!!!!!!
+                fail.buckling.x[s] = kk * F / critical_load_x[0]
+                fail.buckling.z[s] = kk * F / critical_load_z[0]
             else:
                 fail.buckling.x[s] = 0
                 fail.buckling.z[s] = 0

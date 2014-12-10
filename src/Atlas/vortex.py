@@ -80,10 +80,10 @@ class VortexRing(Component):
         # create nacent vortex rings
         GammaBound = self.dT / (self.rho*(self.Omega*yE)*dy)
 
-        self.Gamma[0, 0] = -GammaBound[0]
+        self.Gamma[0, 0] = -GammaBound[0][0]
         for s in range(1, self.Ns):
-            self.Gamma[0, s] = GammaBound[s-1] - GammaBound[s]
-        self.Gamma[0, self.Ns] = GammaBound[self.Ns-1]
+            self.Gamma[0, s] = GammaBound[s-1][0] - GammaBound[s][0]
+        self.Gamma[0, self.Ns] = GammaBound[self.Ns-1][0]
 
         self.r[0, :] = self.yN.T
         self.z[0, :] = qh[:]
@@ -151,10 +151,10 @@ class VortexRing(Component):
 
             # Create nacent vortex rings
             GammaBound = self.dT / (self.rho*(self.Omega*yE)*dy)
-            self.Gamma[0, 0] = -GammaBound[0]
+            self.Gamma[0, 0] = -GammaBound[0][0]
             for s in range(1, self.Ns):
-                self.Gamma[0, s] = GammaBound[s-1] - GammaBound[s]
-            self.Gamma[0, self.Ns] = GammaBound[self.Ns-1]
+                self.Gamma[0, s] = GammaBound[s-1][0] - GammaBound[s][0]
+            self.Gamma[0, self.Ns] = GammaBound[self.Ns-1][0]
             self.r[0, :] = self.yN.T
             self.z[0, :] = qh[:]
 
