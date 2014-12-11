@@ -93,20 +93,22 @@ class MassProperties(Component):
 
         self.add('b',           Int(0, iotype='in', desc='number of blades'))
 
-        NsZeros = np.zeros(Ns)
+        # initial values required to size arrays
+        a0 = np.zeros(1)
+        n0 = np.zeros(Ns)
 
-        self.add('mSpar',       Array(NsZeros, iotype='in', desc='mass of spars'))
-        self.add('mChord',      Array(NsZeros, iotype='in', desc='mass of chords'))
-        self.add('xCGChord',    Array(NsZeros, iotype='in', desc='xCG of chords'))
-        self.add('xEA',         Array(NsZeros, iotype='in', desc=''))
+        self.add('mSpar',       Array(n0, iotype='in', desc='mass of spars'))
+        self.add('mChord',      Array(n0, iotype='in', desc='mass of chords'))
+        self.add('xCGChord',    Array(n0, iotype='in', desc='xCG of chords'))
+        self.add('xEA',         Array(n0, iotype='in', desc=''))
 
         self.add('mQuad',       Float(0., iotype='in', desc=''))
 
         self.add('ycmax',       Float(0., iotype='in', desc=''))
 
-        self.add('yWire',       Array(NsZeros, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',       Float(0.,      iotype='in', desc='depth of wire attachement'))
-        self.add('tWire',       Float(0.,      iotype='in', desc='thickness of wire'))
+        self.add('yWire',       Array(a0, iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',       Float(0., iotype='in', desc='depth of wire attachement'))
+        self.add('tWire',       Float(0., iotype='in', desc='thickness of wire'))
 
         self.add('mElseRotor',  Float(0., iotype='in', desc=''))
         self.add('mElseCentre', Float(0., iotype='in', desc=''))
@@ -115,7 +117,7 @@ class MassProperties(Component):
         self.add('mPilot',      Float(0., iotype='in', desc='mass of pilot (kg)'))
 
         # outputs
-        self.add('xCG',         Array(NsZeros, iotype='out', desc=''))
+        self.add('xCG',         Array(n0, iotype='out', desc=''))
 
         self.add('Mtot',        Float(0., iotype='out', desc='total mass'))
         self.add('mCover',      Float(0., iotype='out', desc='mass of cover'))
@@ -150,6 +152,7 @@ class FEM(Component):
         super(FEM, self).__init__()
 
         # initial values required to size arrays
+        a0 = np.zeros(1)
         y0 = np.zeros(Ns+1)
         n0 = np.zeros(Ns)
         k0 = np.zeros((Ns+2, Ns+2, Ns))
@@ -174,9 +177,9 @@ class FEM(Component):
         self.add('mChord',   Array(n0, iotype='in', desc='mass of chords'))
         self.add('xCG',      Array(n0, iotype='in', desc=''))
 
-        self.add('yWire',    Array(n0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',    Float(0.,  iotype='in', desc='depth of wire attachment'))
-        self.add('TWire',    Array(n0, iotype='in', desc=''))
+        self.add('yWire',    Array(a0, iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',    Float(0., iotype='in', desc='depth of wire attachment'))
+        self.add('TWire',    Array(a0, iotype='in', desc=''))
 
         self.add('presLoad', VarTree(PrescribedLoad(), iotype='in'))
 

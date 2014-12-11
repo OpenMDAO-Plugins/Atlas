@@ -65,30 +65,30 @@ class AtlasConfiguration(Component):
         self.add('visc',  Float(1.78e-5,    iotype='out', desc='air viscosity'))
         self.add('Omega', Float(0.165*2*pi, iotype='out', desc='rotor angular velocity'))
 
-        self.add('c', Array(np.array([0, 0.8, 1.4, 0.4, 0.36]),  # ideal curve
+        self.add('c', Array(np.array([0, 0.8, 1.4, 0.4, 0.36, 0., 0., 0., 0., 0.]),  # ideal curve
                     iotype='out', desc='chord distribution'))
-        self.add('d', Array(np.array([3.442, 1.99, 1.239])*2.54/100,  # inches to meters
+        self.add('d', Array(np.array([3.442, 1.99, 1.239, 0., 0., 0., 0., 0., 0., 0.])*2.54/100,  # inches to meters
                     iotype='out', desc='spar diameter distribution'))
-        self.add('Cl', Array(np.array([1.5, 1.43, 1.23]),  # 0.5 m No canard lift distribution (as flown)
+        self.add('Cl', Array(np.array([1.5, 1.43, 1.23, 0., 0., 0., 0., 0., 0., 0.]),  # 0.5 m No canard lift distribution (as flown)
                     iotype='out', desc='lift coefficient distribution'))
-        self.add('Cm', Array(np.array([-0.15, -0.12, -0.12]),
+        self.add('Cm', Array(np.array([-0.15, -0.12, -0.12, 0., 0., 0., 0., 0., 0., 0.]),
                     iotype='out', desc=''))
-        self.add('t', Array(np.array([0.14, 0.14, 0.14]),
+        self.add('t', Array(np.array([0.14, 0.14, 0.14, 0., 0., 0., 0., 0., 0., 0.]),
                     iotype='out', desc=''))
-        self.add('xEA', Array(np.array([0.27, 0.33, 0.24]),  # percent chord
+        self.add('xEA', Array(np.array([0.27, 0.33, 0.24, 0., 0., 0., 0., 0., 0., 0.]),  # percent chord
                     iotype='out', desc=''))
-        self.add('xtU', Array(np.array([0.15, 7, 0.15]),
+        self.add('xtU', Array(np.array([0.15, 7, 0.15, 0., 0., 0., 0., 0., 0., 0.]),
                     iotype='out', desc='fraction of laminar flow on the upper surface'))
-        self.add('xtL', Array(np.array([0.30, 7, 0.30]),
+        self.add('xtL', Array(np.array([0.30, 7, 0.30, 0., 0., 0., 0., 0., 0., 0.]),
                     iotype='out', desc='fraction of laminar flow on the lower surface'))
 
-        self.add('theta', Array(np.array([20, 20, 20])*pi/180,  # deg to rad
+        self.add('theta', Array(np.array([20, 20, 20, 0., 0., 0., 0., 0., 0., 0.])*pi/180,  # deg to rad
                     iotype='out', desc='wrap angle'))
-        self.add('nTube', Array(np.array([4, 4, 4]),
+        self.add('nTube', Array(np.array([4, 4, 4, 0., 0., 0., 0., 0., 0., 0.]),
                     iotype='out', desc='number of tube layers'))
-        self.add('nCap', Array(np.array([0, 0, 0]),
+        self.add('nCap', Array(np.array([0, 0, 0, 0., 0., 0., 0., 0., 0., 0.]),
                     iotype='out', desc='number of cap strips'))
-        self.add('lBiscuit', Array(np.array([12, 12, 6])*2.54/100,  # inches to meters
+        self.add('lBiscuit', Array(np.array([12, 12, 6, 0., 0., 0., 0., 0., 0., 0.])*2.54/100,  # inches to meters
                     iotype='out', desc='unsupported biscuit length'))
 
         self.add('dQuad',        Float(4*2.54/100,  iotype='out', desc='diameter of quad rotor struts'))

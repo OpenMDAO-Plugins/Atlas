@@ -395,13 +395,14 @@ class DiscretizeProperties(Component):
 
         # initial values required to size arrays
         a0 = np.zeros(1)
+        a2 = np.zeros(2)
         a100 = np.zeros(100)
         y0 = np.zeros(Ns+1)
         n0 = np.zeros(Ns)
 
         # inputs
         self.add('Ns',          Int(Ns,   iotype='in', desc='number of elements'))
-        self.add('ycmax',       Array(a0, iotype='in', desc=''))
+        self.add('ycmax',       Array(a2, iotype='in', desc=''))
         self.add('R',           Float(0., iotype='in', desc=''))
         self.add('c_in',        Array(n0, iotype='in', desc=''))
         self.add('Cl_in',       Array(n0, iotype='in', desc=''))
@@ -410,7 +411,7 @@ class DiscretizeProperties(Component):
         self.add('xtU_in',      Array(n0, iotype='in', desc=''))
         self.add('xtL_in',      Array(n0, iotype='in', desc=''))
         self.add('xEA_in',      Array(n0, iotype='in', desc=''))
-        self.add('yWire',       Array(n0, iotype='in', desc=''))
+        self.add('yWire',       Array(a0, iotype='in', desc=''))
         self.add('d_in',        Array(n0, iotype='in', desc=''))
         self.add('theta_in',    Array(n0, iotype='in', desc=''))
         self.add('nTube_in',    Array(n0, iotype='in', desc=''))
