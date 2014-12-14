@@ -16,6 +16,7 @@ class VortexRing(Component):
         # initial values required to size arrays
         y0 = np.zeros(Ns+1)
         n0 = np.zeros(Ns)
+        t0 = np.zeros((Ns, 1))
         q0 = np.zeros((6*(Ns+1), 1))
 
         # inputs
@@ -26,7 +27,7 @@ class VortexRing(Component):
         self.add('vc',       Float(0., iotype='in', desc='vertical velocity'))
         self.add('Omega',    Float(0., iotype='in', desc='rotor angular velocity'))
         self.add('h',        Float(0., iotype='in', desc='height of rotor'))
-        self.add('dT',       Array(n0, iotype='in', desc='thrust'))
+        self.add('dT',       Array(t0, iotype='in', desc='thrust'))
         self.add('q',        Array(q0, iotype='in', desc='deformation'))
         self.add('anhedral', Float(0., iotype='in'))
 

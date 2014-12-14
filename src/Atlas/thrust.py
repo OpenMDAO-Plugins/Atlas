@@ -12,9 +12,10 @@ class Thrust(Component):
         # initial values required to size arrays
         y0 = np.zeros(Ns+1)
         n0 = np.zeros(Ns)
+        t0 = np.zeros((Ns, 1))
 
         # inputs
-        self.add('Ns',    Int(0, iotype='in',   desc='number of elements'))
+        self.add('Ns',    Int(0,    iotype='in',   desc='number of elements'))
         self.add('yN',    Array(y0, iotype='in', desc='node locations'))
         self.add('dr',    Array(n0, iotype='in', desc='length of each element'))
         self.add('r',     Array(n0, iotype='in', desc='radial location of each element'))
@@ -25,7 +26,7 @@ class Thrust(Component):
         self.add('Omega', Float(0., iotype='in', desc='rotor angular velocity'))
 
         # outputs
-        self.add('dT',        Array(n0, iotype='out', desc='Thrust'))
+        self.add('dT',        Array(t0, iotype='out', desc='Thrust'))
         self.add('chordFrac', Array(n0, iotype='out'))
 
     def execute(self):
