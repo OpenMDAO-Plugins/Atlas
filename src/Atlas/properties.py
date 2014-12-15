@@ -29,7 +29,7 @@ from math import pi, sin, cos, floor, sqrt
 #       ULTIMATE_22_COMP - Failure strength in the material 22-axis, compression
 #       ULTIMATE_12 - Failure strength in shear in the material 12-axis
 #       V_12 - Poisson's ratio of the material in the 12-axis [N/A]
-prepregProperties =  {
+prepreg_properties =  {
     'NCT301-1X HS40 G150 33 +/-2%RW': {
         'RHO': 1.5806E+03,
         'T_PLY': 1.4173E-04,
@@ -111,7 +111,7 @@ prepregProperties =  {
 }
 
 
-wireProperties =  {
+wire_properties =  {
     'Pianowire': {
         'RHO': 7.85e3,       # From ASTM228 Standard, Accessed Online at MatWeb
         'E': 2.10e11,        # From ASTM228 Standard, Accessed Online at MatWeb
@@ -133,42 +133,35 @@ class SparProperties(Component):
         strips, nCap. Properties are computed for each element along the span,
         where the node locations are given by yN.
     """
+    def __init__(self, Ns):
+        super(SparProperties, self).__init__()
 
-    yN    = Array(iotype='in', desc='node locations for each element along the span')
+        # initial values required to size arrays
+        y0 = np.zeros(Ns+1)
+        n0 = np.zeros(Ns)
 
-    d     = Array(iotype='in', desc='diameter')
-    theta = Array(iotype='in', desc='wrap angle')
-    nTube = Array(iotype='in', desc='number of tube layers')
-    nCap  = Array(iotype='in', desc='number of cap strips')
+        # inputs
+        self.add('yN',       Array(y0, iotype='in', desc='node locations for each element along the span'))
 
-    lBiscuit = Array(iotype='in', desc='description')
-    #CFRPType = Int(0, iotype='in', desc='description')
-    CFRPType = Str('', iotype='in', desc='description')
+        self.add('d',        Array(n0, iotype='in', desc='diameter'))
+        self.add('theta',    Array(n0, iotype='in', desc='wrap angle'))
+        self.add('nTube',    Array(n0, iotype='in', desc='number of tube layers'))
+        self.add('nCap',     Array(n0, iotype='in', desc='number of cap strips'))
 
-    EIx = Array(iotype='out', desc='description')
-    EIz = Array(iotype='out', desc='description')
-    EA  = Array(iotype='out', desc='description')
-    GJ  = Array(iotype='out', desc='description')
-    mSpar = Array(iotype='out', desc='description')
-    dy = Array(iotype='out', desc='description')
+        self.add('lBiscuit', Array(n0, iotype='in', desc=''))
+        self.add('CFRPType', Str('',   iotype='in', desc=''))
 
-    # yN = Array(np.zeros(2), iotype='in', desc='description')
-    # d = Float(0, iotype='in', desc='description')
-    # theta = Float(0, iotype='in', desc='description')
-    # nTube = Int(0, iotype='in', desc='description')
-    # nCap = Array(np.zeros(2), iotype='in', desc='description')
-    # lBiscuit = Float(0, iotype='in', desc='description')
-    # CFRPType = Int(0, iotype='in', desc='description')
-
-    # EIx = Float(0, iotype='out', desc='description')
-    # EIz = Float(0, iotype='out', desc='description')
-    # EA = Float(0, iotype='out', desc='description')
-    # GJ = Float(0, iotype='out', desc='description')
-    # mSpar = Float(0, iotype='out', desc='description')
+        # outputs
+        self.add('EIx',      Array(n0, iotype='out', desc=''))
+        self.add('EIz',      Array(n0, iotype='out', desc=''))
+        self.add('EA',       Array(n0, iotype='out', desc=''))
+        self.add('GJ',       Array(n0, iotype='out', desc=''))
+        self.add('mSpar',    Array(n0, iotype='out', desc=''))
+        self.add('dy',       Array(n0, iotype='out', desc=''))
 
     def execute(self):
         # material properties for tube
-        pp = prepregProperties[self.CFRPType]
+        pp = prepreg_properties[self.CFRPType]
         RHO_TUBE = pp['RHO']
         T_PLY_TUBE = pp['T_PLY']
         E_11_TUBE = pp['E_11']
@@ -342,9 +335,11 @@ class JointSparProperties(SparProperties):
     """ subclass of SparProperties for the joints
         (needed to dynamically create yN and get other properties from Jprop)
     """
+    def __init__(self, Ns):
+        super(JointSparProperties, self).__init__(Ns)
 
-    # inputs
-    Jprop = VarTree(JointProperties(), iotype='in')
+        # inputs
+        self.add('Jprop', VarTree(JointProperties(), iotype='in'))
 
     def execute(self):
         self.yN = np.array([0, 1])
@@ -360,17 +355,20 @@ class QuadSparProperties(SparProperties):
     """ subclass of SparProperties for the QuadCopter-specific spars
         (needed to dynamically create yN and nCap and provide scalar I/O)
     """
-    # inputs
-    dQuad     = Float(iotype='in', desc='')
-    thetaQuad = Float(iotype='in', desc='')
-    nTubeQuad = Int(iotype='in', desc='number of tube layers')
-    lBiscuitQuad = Float(iotype='in', desc='')
+    def __init__(self, Ns):
+        super(QuadSparProperties, self).__init__(Ns)
 
-    RQuad  = Float(iotype='in', desc='distance from centre of helicopter to centre of quad rotors')
-    hQuad  = Float(iotype='in', desc='height of quad-rotor truss')
+        # inputs
+        self.add ('dQuad',        Float(0., iotype='in', desc=''))
+        self.add ('thetaQuad',    Float(0., iotype='in', desc=''))
+        self.add ('nTubeQuad',    Int(0,    iotype='in', desc='number of tube layers'))
+        self.add ('lBiscuitQuad', Float(0., iotype='in', desc=''))
 
-    # outputs
-    mQuad        = Float(iotype='out', desc='mass of Quad spar (scalar')
+        self.add ('RQuad',        Float(0., iotype='in', desc='distance from centre of helicopter to centre of quad rotors'))
+        self.add ('hQuad',        Float(0., iotype='in', desc='height of quad-rotor truss'))
+
+        # outputs
+        self.add('mQuad',         Float(0., iotype='out', desc='mass of Quad spar (scalar'))
 
     def execute(self):
         lQuad = sqrt(self.RQuad**2 + self.hQuad**2)
@@ -387,50 +385,58 @@ class QuadSparProperties(SparProperties):
 
 
 class DiscretizeProperties(Component):
-    """
-    Discretize properties along rotor blade. Y defines the locations at which
-    the properties are defined. Properties are linearly interpolated between
-    Y locations.
+    """ Discretize properties along rotor blade. Y defines the locations at which
+        the properties are defined. Properties are linearly interpolated between
+        Y locations.
     """
 
-    # inputs
-    Ns          = Int(iotype='in', desc='number of elements')
-    ycmax       = Array(iotype='in', desc='')
-    R           = Float(iotype='in', desc='')
-    c_in        = Array(iotype='in', desc='')
-    Cl_in       = Array(iotype='in', desc='')
-    Cm_in       = Array(iotype='in', desc='')
-    t_in        = Array(iotype='in', desc='')
-    xtU_in      = Array(iotype='in', desc='')
-    xtL_in      = Array(iotype='in', desc='')
-    xEA_in      = Array(iotype='in', desc='')
-    yWire       = Array(iotype='in', desc='')
-    d_in        = Array(iotype='in', desc='')
-    theta_in    = Array(iotype='in', desc='')
-    nTube_in    = Array(iotype='in', desc='')
-    nCap_in     = Array(iotype='in', desc='')
-    lBiscuit_in = Array(iotype='in', desc='')
+    def __init__(self, Ns):
+        super(DiscretizeProperties, self).__init__()
 
-    # outputs
-    cE       = Array(iotype='out', desc='chord of each element')
-    cN       = Array(iotype='out', desc='chord at each node')
-    c100     = Array(iotype='out', desc='')
-    Cl       = Array(iotype='out', desc='lift coefficient')
-    Cm       = Array(iotype='out', desc='')
-    t        = Array(iotype='out', desc='airfoil thickness')
-    xtU      = Array(iotype='out', desc='')
-    xtL      = Array(iotype='out', desc='')
-    xEA      = Array(iotype='out', desc='')
-    d        = Array(iotype='out', desc='spar diameter')
-    theta    = Array(iotype='out', desc='CFRP wrap angle')
-    nTube    = Array(iotype='out', desc='')
-    nCap     = Array(iotype='out', desc='')
-    lBiscuit = Array(iotype='out', desc='')
-    yN       = Array(iotype='out', desc='node locations')
-    yE       = Array(iotype='out', desc='')
+        # initial values required to size arrays
+        a0 = np.zeros(1)
+        a2 = np.zeros(2)
+        a100 = np.zeros(100)
+        y0 = np.zeros(Ns+1)
+        n0 = np.zeros(Ns)
+
+        # inputs
+        self.add('Ns',          Int(Ns,   iotype='in', desc='number of elements'))
+        self.add('ycmax',       Array(a2, iotype='in', desc=''))
+        self.add('R',           Float(0., iotype='in', desc=''))
+        self.add('c_in',        Array(n0, iotype='in', desc=''))
+        self.add('Cl_in',       Array(n0, iotype='in', desc=''))
+        self.add('Cm_in',       Array(n0, iotype='in', desc=''))
+        self.add('t_in',        Array(n0, iotype='in', desc=''))
+        self.add('xtU_in',      Array(n0, iotype='in', desc=''))
+        self.add('xtL_in',      Array(n0, iotype='in', desc=''))
+        self.add('xEA_in',      Array(n0, iotype='in', desc=''))
+        self.add('yWire',       Array(a0, iotype='in', desc=''))
+        self.add('d_in',        Array(n0, iotype='in', desc=''))
+        self.add('theta_in',    Array(n0, iotype='in', desc=''))
+        self.add('nTube_in',    Array(n0, iotype='in', desc=''))
+        self.add('nCap_in',     Array(n0, iotype='in', desc=''))
+        self.add('lBiscuit_in', Array(n0, iotype='in', desc=''))
+
+        # outputs
+        self.add('cE',       Array(n0, iotype='out', desc='chord of each element'))
+        self.add('cN',       Array(y0, iotype='out', desc='chord at each node'))
+        self.add('c100',     Array(a100, iotype='out', desc=''))
+        self.add('Cl',       Array(n0, iotype='out', desc='lift coefficient'))
+        self.add('Cm',       Array(n0, iotype='out', desc=''))
+        self.add('t',        Array(n0, iotype='out', desc='airfoil thickness'))
+        self.add('xtU',      Array(n0, iotype='out', desc=''))
+        self.add('xtL',      Array(n0, iotype='out', desc=''))
+        self.add('xEA',      Array(n0, iotype='out', desc=''))
+        self.add('d',        Array(n0, iotype='out', desc='spar diameter'))
+        self.add('theta',    Array(n0, iotype='out', desc='CFRP wrap angle'))
+        self.add('nTube',    Array(n0, iotype='out', desc=''))
+        self.add('nCap',     Array(n0, iotype='out', desc=''))
+        self.add('lBiscuit', Array(n0, iotype='out', desc=''))
+        self.add('yN',       Array(y0, iotype='out', desc='node locations'))
+        self.add('yE',       Array(n0, iotype='out', desc=''))
 
     def execute(self):
-
         self.yN = np.zeros(self.Ns+1)
         self.cN = np.zeros(self.Ns+1)
         sTrans = np.zeros(self.Ns+1)
@@ -604,16 +610,23 @@ class ChordProperties(Component):
     is added as well.
     """
 
-    # inputs
-    yN = Array(iotype='in', desc='node locations')
-    c  = Array(iotype='in', desc='chord')
-    d  = Array(iotype='in', desc='spar diameter')
-    GWing = Int(iotype='in', desc='0 - Daedalus style wing, 1 - Gossamer style wing (changes amount of laminar flow)')
-    xtU = Array(iotype='in', desc='')
+    def __init__(self, Ns):
+        super(ChordProperties, self).__init__()
 
-    # outputs
-    mChord   = Array(iotype='out', desc='mass of chords')
-    xCGChord = Array(iotype='out', desc='')
+        # initial values required to size arrays
+        y0 = np.zeros(Ns+1)
+        n0 = np.zeros(Ns)
+
+        # inputs
+        self.add('yN',     Array(y0, iotype='in', desc='node locations'))
+        self.add('c',      Array(n0, iotype='in', desc='chord'))
+        self.add('d',      Array(n0, iotype='in', desc='spar diameter'))
+        self.add('GWing',  Int(0,    iotype='in', desc='0 - Daedalus style wing, 1 - Gossamer style wing (changes amount of laminar flow)'))
+        self.add('xtU',    Array(n0, iotype='in', desc=''))
+
+        # outputs
+        self.add('mChord',   Array(n0, iotype='out', desc='mass of chords'))
+        self.add('xCGChord', Array(n0, iotype='out', desc=''))
 
     def execute(self):
 

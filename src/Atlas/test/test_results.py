@@ -19,7 +19,7 @@ class Test_Results(unittest.TestCase):
     def test_Results(self):
         """ Test the Results component
         """
-        comp = Results()
+        comp = Results(10)
 
         # populate inputs
         path = os.path.join(os.path.dirname(__file__), 'results.mat')
@@ -35,7 +35,7 @@ class Test_Results(unittest.TestCase):
         comp.phi        = data['phi']
         comp.collective = int(data['collective'][0][0])
 
-        comp.fblade = Fblade()
+        comp.fblade = Fblade(10)
         comp.fblade.Fx = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My = data['Fblade']['My'][0][0].flatten()

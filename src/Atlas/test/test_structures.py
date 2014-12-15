@@ -18,7 +18,7 @@ class TestStructures(unittest.TestCase):
 
     def test_Mass(self):
         """ test of mass properties calculations """
-        comp = MassProperties()
+        comp = MassProperties(10)
 
         path = os.path.join(os.path.dirname(__file__), 'mass.mat')
         data = loadmat(path, struct_as_record=True, mat_dtype=True)
@@ -82,7 +82,7 @@ class TestStructures(unittest.TestCase):
 
     def test_FEM(self):
         """ test of FEM calculations """
-        comp = FEM()
+        comp = FEM(10)
 
         path = os.path.join(os.path.dirname(__file__), 'FEM.mat')
         data = loadmat(path, struct_as_record=True, mat_dtype=True)
@@ -102,7 +102,7 @@ class TestStructures(unittest.TestCase):
         comp.cE  = data['cE']
         comp.xEA = data['xEA']
 
-        comp.fblade = Fblade()
+        comp.fblade = Fblade(10)
         comp.fblade.Fx = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My = data['Fblade']['My'][0][0].flatten()
@@ -183,7 +183,7 @@ class TestStructures(unittest.TestCase):
 
     def test_Strains(self):
         """ test of internal force and strain calculations  """
-        comp = Strains()
+        comp = Strains(10)
 
         # populate inputs from MATLAB test data
         path = os.path.join(os.path.dirname(__file__), 'strains.mat')
@@ -304,7 +304,7 @@ class TestStructures(unittest.TestCase):
 
     def test_Failures(self):
         """ test of failure calculations  """
-        comp = Failures()
+        comp = Failures(10)
 
         path = os.path.join(os.path.dirname(__file__), 'failure.mat')
         data = loadmat(path, struct_as_record=True, mat_dtype=True)
@@ -338,7 +338,7 @@ class TestStructures(unittest.TestCase):
 
         comp.Finternal = data['Finternal']
 
-        comp.strain = Strain()
+        comp.strain = Strain(10)
         comp.strain.top       = data['strain']['top'][0][0]
         comp.strain.bottom    = data['strain']['bottom'][0][0]
         comp.strain.back      = data['strain']['back'][0][0]
@@ -372,7 +372,7 @@ class TestStructures(unittest.TestCase):
         comp.TEtension    = data['TEtension'][0][0]
 
         comp.b          = int(data['b'][0][0])
-        comp.fblade     = Fblade()
+        comp.fblade     = Fblade(10)
         comp.fblade.Fx  = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz  = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My  = data['Fblade']['My'][0][0].flatten()
@@ -392,7 +392,7 @@ class TestStructures(unittest.TestCase):
 
     def test_Structures(self):
         """ full up test of integrated structures calculations """
-        comp = Structures()
+        comp = Structures(10)
 
         path = os.path.join(os.path.dirname(__file__), 'StrCalc.mat')
         data = loadmat(path, struct_as_record=True, mat_dtype=True)
@@ -468,7 +468,7 @@ class TestStructures(unittest.TestCase):
         comp.R           = data['R'][0][0]
         comp.mPilot      = data['mPilot'][0][0]
 
-        comp.fblade = Fblade()
+        comp.fblade = Fblade(10)
         comp.fblade.Fx = data['Fblade']['Fx'][0][0].flatten()
         comp.fblade.Fz = data['Fblade']['Fz'][0][0].flatten()
         comp.fblade.My = data['Fblade']['My'][0][0].flatten()

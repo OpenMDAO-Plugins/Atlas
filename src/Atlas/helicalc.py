@@ -17,11 +17,14 @@ class HeliCalc(Assembly):
     factor of safety for each of the failure modes.
     """
 
-    def configure(self):
-        self.add('config', AtlasConfiguration())
+    def __init__(self, Ns):
+        super(HeliCalc, self).__init__()
+
+        # configuration
+        self.add('config', AtlasConfiguration(Ns))
 
         # Take parameterized properties and get property for each element
-        self.add('discrete', DiscretizeProperties())
+        self.add('discrete', DiscretizeProperties(Ns))
         self.connect('config.Ns',           'discrete.Ns')
         self.connect('config.ycmax',        'discrete.ycmax')
         self.connect('config.R',            'discrete.R')
@@ -41,7 +44,7 @@ class HeliCalc(Assembly):
 
         # First run Aero calc with simple blade-element model. Lift is
         # accurate with this simple model since Cl is pre-defined
-        self.add('aero', Aero())
+        self.add('aero', Aero(Ns))
         self.connect('config.b',            'aero.b')
         self.connect('config.R',            'aero.R')
         self.connect('config.Ns',           'aero.Ns')
@@ -67,7 +70,7 @@ class HeliCalc(Assembly):
 
         # Then run Structures calc (simply to determine the spar
         # deflection for accurate ground effect computation)
-        self.add('struc', Structures())
+        self.add('struc', Structures(Ns))
         self.connect('config.flags',        'struc.flags')
         self.connect('discrete.yN',         'struc.yN')
         self.connect('discrete.d',          'struc.d')
@@ -101,7 +104,7 @@ class HeliCalc(Assembly):
         self.connect('config.presLoad',     'struc.presLoad')
 
         # Then run Aero calc with more accurate Vortex method
-        self.add('aero2', Aero2())
+        self.add('aero2', Aero2(Ns))
         self.connect('config.b',            'aero2.b')
         self.connect('config.R',            'aero2.R')
         self.connect('config.Ns',           'aero2.Ns')
@@ -128,7 +131,7 @@ class HeliCalc(Assembly):
         self.connect('config.anhedral',     'aero2.anhedral')
 
         # Perform structural calculation once more with more accurate idea of drag
-        self.add('struc2', Structures())
+        self.add('struc2', Structures(Ns))
         self.connect('config.flags',        'struc2.flags')
         self.connect('discrete.yN',         'struc2.yN')
         self.connect('discrete.d',          'struc2.d')
@@ -162,7 +165,7 @@ class HeliCalc(Assembly):
         self.connect('config.presLoad',     'struc2.presLoad')
 
         # calculate results
-        self.add('results', Results())
+        self.add('results', Results(Ns))
         self.connect('config.b',            'results.b')
         self.connect('config.Ns',           'results.Ns')
         self.connect('discrete.yN',         'results.yN')

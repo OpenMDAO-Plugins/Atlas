@@ -1,6 +1,6 @@
 from configuration import Flags, AtlasConfiguration
 from coefficients import DragCoefficient, frictionCoefficient
-from properties import prepregProperties, wireProperties, DiscretizeProperties, \
+from properties import prepreg_properties, wire_properties, DiscretizeProperties, \
                        JointProperties, SparProperties, ChordProperties
 from structures import PrescribedLoad, Strain, \
                        MassProperties, FEM, Strains, Failures, Structures

@@ -6,20 +6,28 @@ from openmdao.main.datatypes.api import Int, Float, Array
 
 class Thrust(Component):
 
-    # inputs
-    Ns    = Int(iotype='in',   desc='number of elements')
-    yN    = Array(iotype='in', desc='node locations')
-    dr    = Array(iotype='in', desc='length of each element')
-    r     = Array(iotype='in', desc='radial location of each element')
-    ycmax = Float(iotype='in')
-    Cl    = Array(iotype='in', desc='lift coefficient distribution')
-    c     = Array(iotype='in', desc='chord distribution')
-    rho   = Float(iotype='in', desc='air density')
-    Omega = Float(iotype='in', desc='rotor angular velocity')
+    def __init__(self, Ns):
+        super(Thrust, self).__init__()
 
-    # outputs
-    dT = Array(iotype='out', desc='Thrust')
-    chordFrac = Array(iotype='out')
+        # initial values required to size arrays
+        y0 = np.zeros(Ns+1)
+        n0 = np.zeros(Ns)
+        t0 = np.zeros((Ns, 1))
+
+        # inputs
+        self.add('Ns',    Int(0,    iotype='in',   desc='number of elements'))
+        self.add('yN',    Array(y0, iotype='in', desc='node locations'))
+        self.add('dr',    Array(n0, iotype='in', desc='length of each element'))
+        self.add('r',     Array(n0, iotype='in', desc='radial location of each element'))
+        self.add('ycmax', Float(0., iotype='in'))
+        self.add('Cl',    Array(n0, iotype='in', desc='lift coefficient distribution'))
+        self.add('c',     Array(n0, iotype='in', desc='chord distribution'))
+        self.add('rho',   Float(0., iotype='in', desc='air density'))
+        self.add('Omega', Float(0., iotype='in', desc='rotor angular velocity'))
+
+        # outputs
+        self.add('dT',        Array(t0, iotype='out', desc='Thrust'))
+        self.add('chordFrac', Array(n0, iotype='out'))
 
     def execute(self):
         self.chordFrac = np.ones((self.Ns, 1))
@@ -40,23 +48,28 @@ class Thrust(Component):
 
 
 class ActuatorDiskInducedVelocity(Component):
-    '''
-    Compute induced velocity using annual-ring actuator disk theory
-    '''
+    """ Compute induced velocity using annual-ring actuator disk theory
+    """
 
-    # inputs
-    Ns  = Int(iotype='in',   desc='number of elements')
-    r   = Array(iotype='in', desc='radial location of each element')
-    dr  = Array(iotype='in', desc='length of each element')
-    R   = Float(iotype='in', desc='rotor radius')
-    b   = Int(iotype='in', desc='number of blades')
-    h   = Float(iotype='in', desc='height of rotor')
-    vc  = Float(iotype='in', desc='vertical velocity')
-    rho = Float(iotype='in', desc='air density')
-    dT  = Array(iotype='in', desc='thrust')
+    def __init__(self, Ns):
+        super(ActuatorDiskInducedVelocity, self).__init__()
 
-    # outputs
-    vi  = Array(iotype='out', desc='induced downwash distribution')
+        # initial values required to size arrays
+        n0 = np.zeros(Ns)
+
+        # inputs
+        self.add('Ns',  Int(0,    iotype='in', desc='number of elements'))
+        self.add('r',   Array(n0, iotype='in', desc='radial location of each element'))
+        self.add('dr',  Array(n0, iotype='in', desc='length of each element'))
+        self.add('R',   Float(0., iotype='in', desc='rotor radius'))
+        self.add('b',   Int(0,    iotype='in', desc='number of blades'))
+        self.add('h',   Float(0., iotype='in', desc='height of rotor'))
+        self.add('vc',  Float(0., iotype='in', desc='vertical velocity'))
+        self.add('rho', Float(0., iotype='in', desc='air density'))
+        self.add('dT',  Array(n0, iotype='in', desc='thrust'))
+
+        # outputs
+        self.add('vi',  Array(n0, iotype='out', desc='induced downwash distribution'))
 
     def execute(self):
         self.vi = np.zeros((self.Ns, 1))

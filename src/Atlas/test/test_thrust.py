@@ -11,7 +11,7 @@ class ThrustTestCase(unittest.TestCase):
         pass
 
     def test_induced_velocity(self):
-        comp = thrust.ActuatorDiskInducedVelocity()
+        comp = thrust.ActuatorDiskInducedVelocity(10)
 
         comp.vc = 0.
         comp.b = 2
@@ -49,7 +49,7 @@ class ThrustTestCase(unittest.TestCase):
         assert_rel_error(self, comp.vi, vi, 1e-4)
 
     def test_thrust(self):
-        comp = thrust.Thrust()
+        comp = thrust.Thrust(10)
         comp.yN = np.array([
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
         ])

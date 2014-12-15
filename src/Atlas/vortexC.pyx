@@ -202,30 +202,39 @@ def main_loop(
 
 
 class VortexRingC(Component):
+    """ Vortex ring calculations
+        Computes the induced velocity on the rotor blades given the
+        thrust distribution on the rotor
     """
-    Vortex ring calculations
-    Computes the induced velocity on the rotor blades given the
-    thrust distribution on the rotor
-    """
-    # inputs
-    b        = Int(iotype='in', desc='number of blades')
-    Ns       = Int(iotype='in', desc='number of elements')
-    yN       = Array(iotype='in', desc='node locations')
-    rho      = Float(iotype='in', desc='air density')
-    vc       = Float(iotype='in', desc='vertical velocity')
-    Omega    = Float(iotype='in', desc='rotor angular velocity')
-    h        = Float(iotype='in', desc='height of rotor')
-    dT       = Array(iotype='in', desc='thrust')
-    q        = Array(iotype='in', desc='deformation')
-    anhedral = Float(iotype='in')
 
-    # outputs
-    vi       = Array(iotype='out', desc='induced velocity')
-    Gamma    = Array(iotype='out', desc='vortex strength')
-    z        = Array(iotype='out', desc='')
-    r        = Array(iotype='out', desc='')
-    vz       = Array(iotype='out', desc='')
-    vr       = Array(iotype='out', desc='')
+    def __init__(self, Ns):
+        super(VortexRingC, self).__init__()
+
+        # initial values required to size arrays
+        y0 = np.zeros(Ns+1)
+        n0 = np.zeros(Ns)
+        t0 = np.zeros((Ns, 1))
+        q0 = np.zeros((6*(Ns+1), 1))
+
+        # inputs
+        self.add('b',        Int(0,    iotype='in', desc='number of blades'))
+        self.add('Ns',       Int(0,    iotype='in', desc='number of elements'))
+        self.add('yN',       Array(y0, iotype='in', desc='node locations'))
+        self.add('rho',      Float(0., iotype='in', desc='air density'))
+        self.add('vc',       Float(0., iotype='in', desc='vertical velocity'))
+        self.add('Omega',    Float(0., iotype='in', desc='rotor angular velocity'))
+        self.add('h',        Float(0., iotype='in', desc='height of rotor'))
+        self.add('dT',       Array(t0, iotype='in', desc='thrust'))
+        self.add('q',        Array(q0, iotype='in', desc='deformation'))
+        self.add('anhedral', Float(0., iotype='in'))
+
+        # outputs
+        self.add('vi',       Array(n0, iotype='out', desc='induced velocity'))
+        self.add('Gamma',    Array(n0, iotype='out', desc='vortex strength'))
+        self.add('z',        Array(n0, iotype='out', desc=''))
+        self.add('r',        Array(n0, iotype='out', desc=''))
+        self.add('vz',       Array(n0, iotype='out', desc=''))
+        self.add('vr',       Array(n0, iotype='out', desc=''))
 
     def execute(self):
         dy = np.zeros((self.Ns, 1))

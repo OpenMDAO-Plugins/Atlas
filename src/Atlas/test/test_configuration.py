@@ -18,9 +18,8 @@ class AtlasTestCase(unittest.TestCase):
         pass
 
     def test_configuration(self):
-        comp = AtlasConfiguration()
-
-        # run with default values
+        # run with default values (10 segments)
+        comp = AtlasConfiguration(10)
         comp.run()
 
         # check calculated outputs
