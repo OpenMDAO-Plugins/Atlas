@@ -29,12 +29,12 @@ def frictionCoefficient(Re, xtc):
 class DragCoefficient(Component):
     """ Computes drag coefficient
     """
-    Re   = Float(0., iotype='in', desc='description')
-    tc   = Float(0., iotype='in', desc='description')
-    xtcU = Float(0., iotype='in', desc='description')
-    xtcL = Float(0., iotype='in', desc='description')
+    Re   = Float(0., iotype='in', desc='')
+    tc   = Float(0., iotype='in', desc='')
+    xtcU = Float(0., iotype='in', desc='')
+    xtcL = Float(0., iotype='in', desc='')
 
-    Cd   = Float(0., iotype='out', desc='description')
+    Cd   = Float(0., iotype='out', desc='')
 
     def execute(self):
         CfU = frictionCoefficient(self.Re, self.xtcU)

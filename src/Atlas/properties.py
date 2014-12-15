@@ -148,16 +148,16 @@ class SparProperties(Component):
         self.add('nTube',    Array(n0, iotype='in', desc='number of tube layers'))
         self.add('nCap',     Array(n0, iotype='in', desc='number of cap strips'))
 
-        self.add('lBiscuit', Array(n0, iotype='in', desc='description'))
-        self.add('CFRPType', Str('',   iotype='in', desc='description'))
+        self.add('lBiscuit', Array(n0, iotype='in', desc=''))
+        self.add('CFRPType', Str('',   iotype='in', desc=''))
 
         # outputs
-        self.add('EIx',      Array(n0, iotype='out', desc='description'))
-        self.add('EIz',      Array(n0, iotype='out', desc='description'))
-        self.add('EA',       Array(n0, iotype='out', desc='description'))
-        self.add('GJ',       Array(n0, iotype='out', desc='description'))
-        self.add('mSpar',    Array(n0, iotype='out', desc='description'))
-        self.add('dy',       Array(n0, iotype='out', desc='description'))
+        self.add('EIx',      Array(n0, iotype='out', desc=''))
+        self.add('EIz',      Array(n0, iotype='out', desc=''))
+        self.add('EA',       Array(n0, iotype='out', desc=''))
+        self.add('GJ',       Array(n0, iotype='out', desc=''))
+        self.add('mSpar',    Array(n0, iotype='out', desc=''))
+        self.add('dy',       Array(n0, iotype='out', desc=''))
 
     def execute(self):
         # material properties for tube

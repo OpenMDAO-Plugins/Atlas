@@ -20,9 +20,9 @@ class Aero(Assembly):
         n0 = np.zeros(Ns)
 
         # inputs
-        self.add('b',     Int(0,    iotype="in",   desc="number of blades"))
+        self.add('b',     Int(0,    iotype="in", desc="number of blades"))
         self.add('R',     Float(0., iotype='in', desc='rotor radius'))
-        self.add('Ns',    Int(0,    iotype='in',   desc='number of elements'))
+        self.add('Ns',    Int(0,    iotype='in', desc='number of elements'))
         self.add('yN',    Array(y0, iotype="in", desc='node locations'))
         self.add('dr',    Array(n0, iotype="in", desc="length of each element"))
         self.add('r',     Array(n0, iotype="in", desc="radial location of each element"))
