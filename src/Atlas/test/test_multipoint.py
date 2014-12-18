@@ -67,9 +67,6 @@ class Test_Multipoint(unittest.TestCase):
     def test_HeliOptM(self):
         """ Test the multipoint optimization (HeliOptM) assembly
         """
-        # comment the following line to run this test
-        raise SkipTest('Test skipped to save execution time')
-
         opt = set_as_top(HeliOptM(10))
 
         # run
@@ -80,8 +77,8 @@ class Test_Multipoint(unittest.TestCase):
         self.assertAlmostEquals(opt.mp.Omega_low,  1.0512, 2)
         self.assertAlmostEquals(opt.mp.Omega_high, 1.0771, 2)
 
-        self.assertAlmostEquals(0, opt.mp.Mtot_low*9.8-opt.mp.Ttot_low, 3)
-        self.assertAlmostEquals(0, opt.mp.Mtot_high*9.8-opt.mp.Ttot_high, 3)
+        self.assertAlmostEquals(0, opt.mp.Mtot_low*9.8-opt.mp.Ttot_low, 2)
+        self.assertAlmostEquals(0, opt.mp.Mtot_high*9.8-opt.mp.Ttot_high, 2)
 
 
 if __name__ == "__main__":

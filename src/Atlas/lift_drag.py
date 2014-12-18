@@ -13,16 +13,13 @@ class Fblade(VariableTree):
     def __init__(self, Ns):
         super(Fblade, self).__init__()
 
-        # initial values required to size arrays
-        n0 = np.zeros(Ns)
-
-        self.add('Fx', Array(n0, desc='drag axis', units='N/m'))
-        self.add('Fz', Array(n0, desc='lift axis', units='N/m'))
-        self.add('My', Array(n0, desc=''))
-        self.add('Q',  Array(n0, desc='Torque'))
-        self.add('P',  Array(n0, desc='Power'))
-        self.add('Pi', Array(n0, desc=''))
-        self.add('Pp', Array(n0, desc=''))
+        self.add('Fx', Array(np.zeros(Ns), desc='drag axis', units='N/m'))
+        self.add('Fz', Array(np.zeros(Ns), desc='lift axis', units='N/m'))
+        self.add('My', Array(np.zeros(Ns), desc=''))
+        self.add('Q',  Array(np.zeros(Ns), desc='Torque'))
+        self.add('P',  Array(np.zeros(Ns), desc='Power'))
+        self.add('Pi', Array(np.zeros(Ns), desc=''))
+        self.add('Pp', Array(np.zeros(Ns), desc=''))
 
 
 class LiftDrag(Component):
@@ -32,14 +29,10 @@ class LiftDrag(Component):
     def __init__(self, Ns):
         super(LiftDrag, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-
         # inputs
-        self.add('Ns',        Int(0,    iotype="in", desc="number of Elements"))
-        self.add('yN',        Array(y0, iotype="in", desc='node locations'))
+        self.add('Ns',        Int(0, iotype="in", desc="number of Elements"))
+
+        self.add('yN',        Array(np.zeros(Ns+1), iotype="in", desc='node locations'))
 
         self.add('rho',       Float(0., iotype='in', desc='air density'))
         self.add('visc',      Float(0., iotype='in', desc='air viscosity'))
@@ -47,26 +40,27 @@ class LiftDrag(Component):
         self.add('vc',        Float(0., iotype='in', desc='vertical velocity'))
         self.add('Omega',     Float(0., iotype='in', desc='Rotor angular velocity'))
 
-        self.add('r',         Array(n0, iotype='in', desc='radial location of each element'))
-        self.add('vi',        Array(n0, iotype='in', desc='induced downwash distribution'))
-        self.add('c',         Array(n0, iotype='in', desc='chord distribution'))
-        self.add('Cl',        Array(n0, iotype='in', desc='lift coefficient distribution'))
-        self.add('dr',        Array(n0, iotype='in', desc='length of each element'))
-        self.add('d',         Array(n0, iotype='in', desc='spar diameter distribution'))
+        self.add('r',         Array(np.zeros(Ns), iotype='in', desc='radial location of each element'))
+        self.add('vi',        Array(np.zeros(Ns), iotype='in', desc='induced downwash distribution'))
+        self.add('c',         Array(np.zeros(Ns), iotype='in', desc='chord distribution'))
+        self.add('Cl',        Array(np.zeros(Ns), iotype='in', desc='lift coefficient distribution'))
+        self.add('dr',        Array(np.zeros(Ns), iotype='in', desc='length of each element'))
+        self.add('d',         Array(np.zeros(Ns), iotype='in', desc='spar diameter distribution'))
 
-        self.add('yWire',     Array(a0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',     Float(0., iotype='in', desc='depth of wire attachement'))
-        self.add('tWire',     Float(0., iotype='in', desc='thickness of wire'))
-        self.add('chordFrac', Array(n0, iotype='in', desc=''))
+        self.add('yWire',     Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',     Float(0.,  iotype='in', desc='depth of wire attachement'))
+        self.add('tWire',     Float(0.,  iotype='in', desc='thickness of wire'))
 
-        self.add('Cm',        Array(n0, iotype='in', desc=''))
-        self.add('xtU',       Array(n0, iotype='in', desc='fraction of laminar flow on the upper surface'))
-        self.add('xtL',       Array(n0, iotype='in', desc='fraction of laminar flow on the lower surface'))
+        self.add('chordFrac', Array(np.zeros(Ns), iotype='in', desc=''))
+
+        self.add('Cm',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtU',       Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the upper surface'))
+        self.add('xtL',       Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the lower surface'))
 
         # outputs
-        self.add('Re',        Array(n0, iotype='out', desc='Reynolds number'))
-        self.add('Cd',        Array(n0, iotype='out', desc='drag coefficients'))
-        self.add('phi',       Array(n0, iotype='out', desc=''))
+        self.add('Re',        Array(np.zeros(Ns), iotype='out', desc='Reynolds number'))
+        self.add('Cd',        Array(np.zeros(Ns), iotype='out', desc='drag coefficients'))
+        self.add('phi',       Array(np.zeros(Ns), iotype='out', desc=''))
         self.add('Fblade',    VarTree(Fblade(Ns), iotype='out', desc=''))
 
     def execute(self):

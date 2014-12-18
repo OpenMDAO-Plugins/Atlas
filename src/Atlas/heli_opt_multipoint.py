@@ -108,13 +108,12 @@ class ConfigWind(AtlasConfiguration):
     def __init__(self, Ns):
         super(ConfigWind, self).__init__(Ns)
 
-        # initial value required to size array
-        n0 = np.zeros(Ns)
-
         # add optimizer controlled inputs
         self.add('Omega_opt',  Float(0., iotype='in', desc='rotor angular velocity'))
         self.add('OmegaRatio', Float(0., iotype='in', desc=''))
-        self.add('Cl_opt',     Array(n0, iotype='in', desc=''))
+
+        self.add('Cl_opt',     Array(np.zeros(Ns), iotype='in', desc=''))
+
         self.add('H_opt',      Float(0., iotype='in', desc='height of aircraft'))
         self.add('TWire_opt',  Float(0., iotype='in', desc=''))
         self.add('vw_opt',     Float(0., iotype='in', desc='wind velocity'))
@@ -165,13 +164,12 @@ class ConfigGravity(AtlasConfiguration):
     def __init__(self, Ns):
         super(ConfigGravity, self).__init__(Ns)
 
-        # initial value required to size array
-        n0 = np.zeros(Ns)
-
         # add optimizer controlled inputs
         self.add('Omega_opt',  Float(0., iotype='in', desc='rotor angular velocity'))
         self.add('OmegaRatio', Float(0., iotype='in'))
-        self.add('Cl_opt',     Array(n0, iotype='in'))
+
+        self.add('Cl_opt',     Array(np.zeros(Ns), iotype='in'))
+
         self.add('H_opt',      Float(0., iotype='in', desc='height of aircraft'))
         self.add('TWire_opt',  Float(0., iotype='in', desc=''))
 
@@ -228,9 +226,6 @@ class Multipoint(Assembly):
     def __init__(self, Ns):
         super(Multipoint, self).__init__()
 
-        # initial value required to size array
-        n0 = np.zeros(Ns)
-
         # configuration inputs
         self.add('alt_low',    Float(0., iotype='in', desc='low altitude'))
         self.add('alt_high',   Float(0., iotype='in', desc='high altitude'))
@@ -244,7 +239,7 @@ class Multipoint(Assembly):
 
         self.add('vw',         Float(0., iotype='in', desc='wind velocity'))
 
-        self.add('Cl_max',     Array(n0, iotype='in', desc=''))
+        self.add('Cl_max',     Array(np.zeros(Ns), iotype='in', desc=''))
 
         # optimizer parameters
         self.add('Omega_low',  Float(0., iotype='in', desc='rotor angular velocity, low altitude'))
@@ -318,6 +313,17 @@ class HeliOptM(Assembly):
         else:
             print 'SNOPT not available, using SLSQP'
             self.add('driver', SLSQPdriver())
+
+        # Set force_fd to True. This will force the derivative system to treat
+        # the whole model as a single entity to finite difference it and force
+        # the system decomposition to put all of it into an opaque system.
+        #
+        # Full-model FD is preferable anyway because:
+        # 1. There are no derivatives defined for any comps
+        # 2. There are a lot of interior connections that would likely make
+        #    it much slower if you allow openmdao to finite difference the
+        #    subassemblies like it normally does.
+        self.driver.gradient_options.force_fd = True
 
         self.add('mp', Multipoint(Ns))
 

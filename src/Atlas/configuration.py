@@ -34,8 +34,10 @@ class Flags(VariableTree):
 
 class PrescribedLoad(VariableTree):
     y = Float(9.9999, desc='Point load location')
+
     pointZ = Float(0.15*9.8, desc='N')
     pointM = Float(0, desc='Nm')
+
     distributedX = Float(0, desc='N/m')
     distributedZ = Float(0, desc='N/m')
     distributedM = Float(0, desc='Nm/m')

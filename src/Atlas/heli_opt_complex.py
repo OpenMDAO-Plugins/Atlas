@@ -83,7 +83,7 @@ class HeliOpt(Assembly):
 
 
 if __name__ == '__main__':
-    opt = set_as_top(HeliOpt())
+    opt = set_as_top(HeliOpt(10))
     opt.driver.gradient_options.force_fd = True
     opt.driver.gradient_options.fd_step = 1e-3
     opt.driver.gradient_options.fd_form = "complex_step"

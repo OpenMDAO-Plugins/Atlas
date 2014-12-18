@@ -14,18 +14,15 @@ class Aero(Assembly):
     def __init__(self, Ns):
         super(Aero, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-
         # inputs
         self.add('b',     Int(0,    iotype="in", desc="number of blades"))
         self.add('R',     Float(0., iotype='in', desc='rotor radius'))
         self.add('Ns',    Int(0,    iotype='in', desc='number of elements'))
-        self.add('yN',    Array(y0, iotype="in", desc='node locations'))
-        self.add('dr',    Array(n0, iotype="in", desc="length of each element"))
-        self.add('r',     Array(n0, iotype="in", desc="radial location of each element"))
+
+        self.add('yN',    Array(np.zeros(Ns+1), iotype="in", desc='node locations'))
+        self.add('dr',    Array(np.zeros(Ns),   iotype="in", desc="length of each element"))
+        self.add('r',     Array(np.zeros(Ns),   iotype="in", desc="radial location of each element"))
+
         self.add('h',     Float(0., iotype="in", desc="height of rotor"))
 
         self.add('ycmax', Float(0., iotype="in"))
@@ -36,17 +33,17 @@ class Aero(Assembly):
         self.add('vc',    Float(0., iotype='in', desc='vertical velocity'))
         self.add('Omega', Float(0., iotype='in', desc='rotor angular velocity'))
 
-        self.add('c',     Array(n0, iotype='in', desc='chord distribution'))
-        self.add('Cl',    Array(n0, iotype='in', desc='lift coefficient distribution'))
-        self.add('d',     Array(n0, iotype='in', desc='spar diameter distribution'))
+        self.add('c',     Array(np.zeros(Ns), iotype='in', desc='chord distribution'))
+        self.add('Cl',    Array(np.zeros(Ns), iotype='in', desc='lift coefficient distribution'))
+        self.add('d',     Array(np.zeros(Ns), iotype='in', desc='spar diameter distribution'))
 
-        self.add('yWire', Array(a0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire', Float(0., iotype='in', desc='depth of wire attachement'))
-        self.add('tWire', Float(0., iotype='in', desc='thickness of wire'))
+        self.add('yWire', Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire', Float(0.,  iotype='in', desc='depth of wire attachement'))
+        self.add('tWire', Float(0.,  iotype='in', desc='thickness of wire'))
 
-        self.add('Cm',    Array(n0, iotype='in', desc=''))
-        self.add('xtU',   Array(n0, iotype='in', desc='fraction of laminar flow on the upper surface'))
-        self.add('xtL',   Array(n0, iotype='in', desc='fraction of laminar flow on the lower surface'))
+        self.add('Cm',    Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtU',   Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the upper surface'))
+        self.add('xtL',   Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the lower surface'))
 
         # configure
         self.add('thrust', Thrust(Ns))
@@ -109,19 +106,15 @@ class Aero2(Assembly):
     def __init__(self, Ns):
         super(Aero2, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-        q0 = np.zeros((6*(Ns+1), 1))
-
         # inputs
-        self.add('b',        Int(0,    iotype="in",   desc="number of blades"))
+        self.add('b',        Int(0,    iotype="in", desc="number of blades"))
         self.add('R',        Float(0., iotype='in', desc='rotor radius'))
-        self.add('Ns',       Int(0,    iotype='in',   desc='number of elements'))
-        self.add('yN',       Array(y0, iotype="in", desc='node locations'))
-        self.add('dr',       Array(n0, iotype="in", desc="length of each element"))
-        self.add('r',        Array(n0, iotype="in", desc="radial location of each element"))
+        self.add('Ns',       Int(0,    iotype='in', desc='number of elements'))
+
+        self.add('yN',       Array(np.zeros(Ns+1), iotype="in", desc='node locations'))
+        self.add('dr',       Array(np.zeros(Ns),   iotype="in", desc="length of each element"))
+        self.add('r',        Array(np.zeros(Ns),   iotype="in", desc="radial location of each element"))
+
         self.add('h',        Float(0., iotype="in", desc="height of rotor"))
 
         self.add('ycmax',    Float(0., iotype="in"))
@@ -132,19 +125,19 @@ class Aero2(Assembly):
         self.add('vc',       Float(0., iotype='in', desc='vertical velocity'))
         self.add('Omega',    Float(0., iotype='in', desc='rotor angular velocity'))
 
-        self.add('c',        Array(n0, iotype='in', desc='chord distribution'))
-        self.add('Cl',       Array(n0, iotype='in', desc='lift coefficient distribution'))
-        self.add('d',        Array(n0, iotype='in', desc='spar diameter distribution'))
+        self.add('c',        Array(np.zeros(Ns), iotype='in', desc='chord distribution'))
+        self.add('Cl',       Array(np.zeros(Ns), iotype='in', desc='lift coefficient distribution'))
+        self.add('d',        Array(np.zeros(Ns), iotype='in', desc='spar diameter distribution'))
 
-        self.add('yWire',    Array(a0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',    Float(0., iotype='in', desc='depth of wire attachement'))
-        self.add('tWire',    Float(0., iotype='in', desc='thickness of wire'))
+        self.add('yWire',    Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',    Float(0.,  iotype='in', desc='depth of wire attachement'))
+        self.add('tWire',    Float(0.,  iotype='in', desc='thickness of wire'))
 
-        self.add('Cm',       Array(n0, iotype='in', desc=''))
-        self.add('xtU',      Array(n0, iotype='in', desc='fraction of laminar flow on the upper surface'))
-        self.add('xtL',      Array(n0, iotype='in', desc='fraction of laminar flow on the lower surface'))
+        self.add('Cm',       Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtU',      Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the upper surface'))
+        self.add('xtL',      Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the lower surface'))
 
-        self.add('q',        Array(q0, iotype='in', desc='deformation'))
+        self.add('q',        Array(np.zeros((6*(Ns+1), 1)), iotype='in', desc='deformation'))
 
         self.add('anhedral', Float(iotype='in'))
 

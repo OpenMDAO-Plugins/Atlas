@@ -9,25 +9,24 @@ class Thrust(Component):
     def __init__(self, Ns):
         super(Thrust, self).__init__()
 
-        # initial values required to size arrays
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-        t0 = np.zeros((Ns, 1))
-
         # inputs
-        self.add('Ns',    Int(0,    iotype='in',   desc='number of elements'))
-        self.add('yN',    Array(y0, iotype='in', desc='node locations'))
-        self.add('dr',    Array(n0, iotype='in', desc='length of each element'))
-        self.add('r',     Array(n0, iotype='in', desc='radial location of each element'))
+        self.add('Ns',    Int(0, iotype='in',   desc='number of elements'))
+
+        self.add('yN',    Array(np.zeros(Ns+1), iotype='in', desc='node locations'))
+        self.add('dr',    Array(np.zeros(Ns),   iotype='in', desc='length of each element'))
+        self.add('r',     Array(np.zeros(Ns),   iotype='in', desc='radial location of each element'))
+
         self.add('ycmax', Float(0., iotype='in'))
-        self.add('Cl',    Array(n0, iotype='in', desc='lift coefficient distribution'))
-        self.add('c',     Array(n0, iotype='in', desc='chord distribution'))
+
+        self.add('Cl',    Array(np.zeros(Ns), iotype='in', desc='lift coefficient distribution'))
+        self.add('c',     Array(np.zeros(Ns), iotype='in', desc='chord distribution'))
+
         self.add('rho',   Float(0., iotype='in', desc='air density'))
         self.add('Omega', Float(0., iotype='in', desc='rotor angular velocity'))
 
         # outputs
-        self.add('dT',        Array(t0, iotype='out', desc='Thrust'))
-        self.add('chordFrac', Array(n0, iotype='out'))
+        self.add('dT',        Array(np.zeros((Ns, 1)), iotype='out', desc='Thrust'))
+        self.add('chordFrac', Array(np.zeros(Ns), iotype='out'))
 
     def execute(self):
         self.chordFrac = np.ones((self.Ns, 1))
@@ -54,22 +53,22 @@ class ActuatorDiskInducedVelocity(Component):
     def __init__(self, Ns):
         super(ActuatorDiskInducedVelocity, self).__init__()
 
-        # initial values required to size arrays
-        n0 = np.zeros(Ns)
-
         # inputs
         self.add('Ns',  Int(0,    iotype='in', desc='number of elements'))
-        self.add('r',   Array(n0, iotype='in', desc='radial location of each element'))
-        self.add('dr',  Array(n0, iotype='in', desc='length of each element'))
+
+        self.add('r',   Array(np.zeros(Ns), iotype='in', desc='radial location of each element'))
+        self.add('dr',  Array(np.zeros(Ns), iotype='in', desc='length of each element'))
+
         self.add('R',   Float(0., iotype='in', desc='rotor radius'))
         self.add('b',   Int(0,    iotype='in', desc='number of blades'))
         self.add('h',   Float(0., iotype='in', desc='height of rotor'))
         self.add('vc',  Float(0., iotype='in', desc='vertical velocity'))
         self.add('rho', Float(0., iotype='in', desc='air density'))
-        self.add('dT',  Array(n0, iotype='in', desc='thrust'))
+
+        self.add('dT',  Array(np.zeros((Ns, 1)), iotype='in', desc='thrust'))
 
         # outputs
-        self.add('vi',  Array(n0, iotype='out', desc='induced downwash distribution'))
+        self.add('vi',  Array(np.zeros(Ns), iotype='out', desc='induced downwash distribution'))
 
     def execute(self):
         self.vi = np.zeros((self.Ns, 1))

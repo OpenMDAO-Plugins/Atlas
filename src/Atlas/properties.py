@@ -136,28 +136,25 @@ class SparProperties(Component):
     def __init__(self, Ns):
         super(SparProperties, self).__init__()
 
-        # initial values required to size arrays
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-
         # inputs
-        self.add('yN',       Array(y0, iotype='in', desc='node locations for each element along the span'))
+        self.add('yN', Array(np.zeros(Ns+1), iotype='in', desc='node locations for each element along the span'))
 
-        self.add('d',        Array(n0, iotype='in', desc='diameter'))
-        self.add('theta',    Array(n0, iotype='in', desc='wrap angle'))
-        self.add('nTube',    Array(n0, iotype='in', desc='number of tube layers'))
-        self.add('nCap',     Array(n0, iotype='in', desc='number of cap strips'))
+        self.add('d',        Array(np.zeros(Ns), iotype='in', desc='diameter'))
+        self.add('theta',    Array(np.zeros(Ns), iotype='in', desc='wrap angle'))
+        self.add('nTube',    Array(np.zeros(Ns), iotype='in', desc='number of tube layers'))
+        self.add('nCap',     Array(np.zeros(Ns), iotype='in', desc='number of cap strips'))
 
-        self.add('lBiscuit', Array(n0, iotype='in', desc=''))
+        self.add('lBiscuit', Array(np.zeros(Ns), iotype='in', desc=''))
+
         self.add('CFRPType', Str('',   iotype='in', desc=''))
 
         # outputs
-        self.add('EIx',      Array(n0, iotype='out', desc=''))
-        self.add('EIz',      Array(n0, iotype='out', desc=''))
-        self.add('EA',       Array(n0, iotype='out', desc=''))
-        self.add('GJ',       Array(n0, iotype='out', desc=''))
-        self.add('mSpar',    Array(n0, iotype='out', desc=''))
-        self.add('dy',       Array(n0, iotype='out', desc=''))
+        self.add('EIx',      Array(np.zeros(Ns), iotype='out', desc=''))
+        self.add('EIz',      Array(np.zeros(Ns), iotype='out', desc=''))
+        self.add('EA',       Array(np.zeros(Ns), iotype='out', desc=''))
+        self.add('GJ',       Array(np.zeros(Ns), iotype='out', desc=''))
+        self.add('mSpar',    Array(np.zeros(Ns), iotype='out', desc=''))
+        self.add('dy',       Array(np.zeros(Ns), iotype='out', desc=''))
 
     def execute(self):
         # material properties for tube
@@ -393,48 +390,46 @@ class DiscretizeProperties(Component):
     def __init__(self, Ns):
         super(DiscretizeProperties, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        a2 = np.zeros(2)
-        a100 = np.zeros(100)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-
         # inputs
-        self.add('Ns',          Int(Ns,   iotype='in', desc='number of elements'))
-        self.add('ycmax',       Array(a2, iotype='in', desc=''))
+        self.add('Ns',          Int(Ns, iotype='in', desc='number of elements'))
+
+        self.add('ycmax',       Array(np.zeros(2), iotype='in', desc=''))
+
         self.add('R',           Float(0., iotype='in', desc=''))
-        self.add('c_in',        Array(n0, iotype='in', desc=''))
-        self.add('Cl_in',       Array(n0, iotype='in', desc=''))
-        self.add('Cm_in',       Array(n0, iotype='in', desc=''))
-        self.add('t_in',        Array(n0, iotype='in', desc=''))
-        self.add('xtU_in',      Array(n0, iotype='in', desc=''))
-        self.add('xtL_in',      Array(n0, iotype='in', desc=''))
-        self.add('xEA_in',      Array(n0, iotype='in', desc=''))
-        self.add('yWire',       Array(a0, iotype='in', desc=''))
-        self.add('d_in',        Array(n0, iotype='in', desc=''))
-        self.add('theta_in',    Array(n0, iotype='in', desc=''))
-        self.add('nTube_in',    Array(n0, iotype='in', desc=''))
-        self.add('nCap_in',     Array(n0, iotype='in', desc=''))
-        self.add('lBiscuit_in', Array(n0, iotype='in', desc=''))
+
+        self.add('c_in',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('Cl_in',       Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('Cm_in',       Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('t_in',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtU_in',      Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtL_in',      Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xEA_in',      Array(np.zeros(Ns), iotype='in', desc=''))
+
+        self.add('yWire',       Array([0], iotype='in', desc=''))
+
+        self.add('d_in',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('theta_in',    Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('nTube_in',    Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('nCap_in',     Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('lBiscuit_in', Array(np.zeros(Ns), iotype='in', desc=''))
 
         # outputs
-        self.add('cE',       Array(n0, iotype='out', desc='chord of each element'))
-        self.add('cN',       Array(y0, iotype='out', desc='chord at each node'))
-        self.add('c100',     Array(a100, iotype='out', desc=''))
-        self.add('Cl',       Array(n0, iotype='out', desc='lift coefficient'))
-        self.add('Cm',       Array(n0, iotype='out', desc=''))
-        self.add('t',        Array(n0, iotype='out', desc='airfoil thickness'))
-        self.add('xtU',      Array(n0, iotype='out', desc=''))
-        self.add('xtL',      Array(n0, iotype='out', desc=''))
-        self.add('xEA',      Array(n0, iotype='out', desc=''))
-        self.add('d',        Array(n0, iotype='out', desc='spar diameter'))
-        self.add('theta',    Array(n0, iotype='out', desc='CFRP wrap angle'))
-        self.add('nTube',    Array(n0, iotype='out', desc=''))
-        self.add('nCap',     Array(n0, iotype='out', desc=''))
-        self.add('lBiscuit', Array(n0, iotype='out', desc=''))
-        self.add('yN',       Array(y0, iotype='out', desc='node locations'))
-        self.add('yE',       Array(n0, iotype='out', desc=''))
+        self.add('cE',       Array(np.zeros(Ns),   iotype='out', desc='chord of each element'))
+        self.add('cN',       Array(np.zeros(Ns+1), iotype='out', desc='chord at each node'))
+        self.add('c100',     Array(np.zeros(100),  iotype='out', desc=''))
+        self.add('Cl',       Array(np.zeros(Ns),   iotype='out', desc='lift coefficient'))
+        self.add('Cm',       Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('t',        Array(np.zeros(Ns),   iotype='out', desc='airfoil thickness'))
+        self.add('xtU',      Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('xtL',      Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('xEA',      Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('d',        Array(np.zeros(Ns),   iotype='out', desc='spar diameter'))
+        self.add('theta',    Array(np.zeros(Ns),   iotype='out', desc='CFRP wrap angle'))
+        self.add('nTube',    Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('nCap',     Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('lBiscuit', Array(np.zeros(Ns),   iotype='out', desc=''))
+        self.add('yN',       Array(np.zeros(Ns+1), iotype='out', desc='node locations'))
+        self.add('yE',       Array(np.zeros(Ns),   iotype='out', desc=''))
 
     def execute(self):
         self.yN = np.zeros(self.Ns+1)
@@ -613,20 +608,17 @@ class ChordProperties(Component):
     def __init__(self, Ns):
         super(ChordProperties, self).__init__()
 
-        # initial values required to size arrays
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-
         # inputs
-        self.add('yN',     Array(y0, iotype='in', desc='node locations'))
-        self.add('c',      Array(n0, iotype='in', desc='chord'))
-        self.add('d',      Array(n0, iotype='in', desc='spar diameter'))
-        self.add('GWing',  Int(0,    iotype='in', desc='0 - Daedalus style wing, 1 - Gossamer style wing (changes amount of laminar flow)'))
-        self.add('xtU',    Array(n0, iotype='in', desc=''))
+        self.add('yN',     Array(np.zeros(Ns+1), iotype='in', desc='node locations'))
+        self.add('c',      Array(np.zeros(Ns),   iotype='in', desc='chord'))
+        self.add('d',      Array(np.zeros(Ns),   iotype='in', desc='spar diameter'))
+        self.add('xtU',    Array(np.zeros(Ns),   iotype='in', desc=''))
+
+        self.add('GWing',  Int(0, iotype='in', desc='0 - Daedalus style wing, 1 - Gossamer style wing (changes amount of laminar flow)'))
 
         # outputs
-        self.add('mChord',   Array(n0, iotype='out', desc='mass of chords'))
-        self.add('xCGChord', Array(n0, iotype='out', desc=''))
+        self.add('mChord',   Array(np.zeros(Ns), iotype='out', desc='mass of chords'))
+        self.add('xCGChord', Array(np.zeros(Ns), iotype='out', desc=''))
 
     def execute(self):
 

@@ -18,27 +18,29 @@ class Results(Component):
     def __init__(self, Ns):
         super(Results, self).__init__()
 
-        # initial values required to size arrays
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-        q0 = np.zeros((6*(Ns+1), 1))
-
         # inputs
-        self.add('b',          Int(0,    iotype='in', desc='number of blades'))
-        self.add('Ns',         Int(0,    iotype='in', desc='number of elements'))
-        self.add('yN',         Array(y0, iotype='in', desc='node locations'))
-        self.add('yE',         Array(n0, iotype='in', desc=''))
-        self.add('cE',         Array(n0, iotype='in', desc='chord of each element'))
-        self.add('Cl',         Array(n0, iotype='in', desc='lift coefficient distribution'))
-        self.add('q',          Array(q0, iotype='in', desc='deformation'))
-        self.add('phi',        Array(n0, iotype='in', desc=''))
+        self.add('b',          Int(0, iotype='in', desc='number of blades'))
+        self.add('Ns',         Int(0, iotype='in', desc='number of elements'))
+
+        self.add('yN',         Array(np.zeros(Ns+1), iotype='in', desc='node locations'))
+        self.add('yE',         Array(np.zeros(Ns),   iotype='in', desc=''))
+        self.add('cE',         Array(np.zeros(Ns),   iotype='in', desc='chord of each element'))
+        self.add('Cl',         Array(np.zeros(Ns),   iotype='in', desc='lift coefficient distribution'))
+
+        self.add('q',          Array(np.zeros((6*(Ns+1), 1)), iotype='in', desc='deformation'))
+
+        self.add('phi',        Array(np.zeros(Ns), iotype='in', desc=''))
+
         self.add('collective', Float(0., iotype='in', desc='collective angle in radians'))
+
         self.add('fblade',     VarTree(Fblade(Ns), iotype='in'))
-        self.add('Mtot',       Float(0.0, iotype='in', desc='total mass'))
+
+        self.add('Mtot',       Float(0., iotype='in', desc='total mass'))
 
         # outputs
-        self.add('di',         Array(n0, iotype='out', desc='dihedral angle'))
-        self.add('alphaJig',   Array(n0, iotype='out', desc='aerodynamic jig angle'))
+        self.add('di',         Array(np.zeros(Ns), iotype='out', desc='dihedral angle'))
+        self.add('alphaJig',   Array(np.zeros(Ns), iotype='out', desc='aerodynamic jig angle'))
+
         self.add('Ttot',       Float(0., iotype='out', desc='total thrust'))
         self.add('Qtot',       Float(0., iotype='out', desc='total torque'))
         self.add('MomRot',     Float(0., iotype='out', desc='total moment'))
@@ -261,7 +263,7 @@ class AeroStructural(Assembly):
 if __name__ == "__main__":
     # enable_trace()
 
-    top = AeroStructural()
+    top = AeroStructural(10)
     top.run()
 
     print 'AeroStructural Results'

@@ -19,19 +19,15 @@ class Strain(VariableTree):
     def __init__(self, Ns):
         super(Strain, self).__init__()
 
-        n0 = np.zeros((3, Ns+1))
+        self.add('top',    Array(np.zeros((3, Ns+1)), desc=''))
+        self.add('bottom', Array(np.zeros((3, Ns+1)), desc=''))
+        self.add('back',   Array(np.zeros((3, Ns+1)), desc=''))
+        self.add('front',  Array(np.zeros((3, Ns+1)), desc=''))
 
-        self.add('top',    Array(n0, desc=''))
-        self.add('bottom', Array(n0, desc=''))
-        self.add('back',   Array(n0, desc=''))
-        self.add('front',  Array(n0, desc=''))
-
-        n0 = np.zeros((1, Ns+1))
-
-        self.add('bending_x', Array(n0, desc=''))
-        self.add('bending_z', Array(n0, desc=''))
-        self.add('axial_y',   Array(n0, desc=''))
-        self.add('torsion_y', Array(n0, desc=''))
+        self.add('bending_x', Array(np.zeros((1, Ns+1)), desc=''))
+        self.add('bending_z', Array(np.zeros((1, Ns+1)), desc=''))
+        self.add('axial_y',   Array(np.zeros((1, Ns+1)), desc=''))
+        self.add('torsion_y', Array(np.zeros((1, Ns+1)), desc=''))
 
 
 class MaterialFailure(VariableTree):
@@ -39,11 +35,9 @@ class MaterialFailure(VariableTree):
     def __init__(self, Ns):
         super(MaterialFailure, self).__init__()
 
-        n0 = np.zeros((3, Ns+1))
-
-        self.add('cap',   Array(n0, desc=''))
-        self.add('plus',  Array(n0, desc=''))
-        self.add('minus', Array(n0, desc=''))
+        self.add('cap',   Array(np.zeros((3, Ns+1)), desc=''))
+        self.add('plus',  Array(np.zeros((3, Ns+1)), desc=''))
+        self.add('minus', Array(np.zeros((3, Ns+1)), desc=''))
 
 
 class BucklingFailure(VariableTree):
@@ -51,12 +45,10 @@ class BucklingFailure(VariableTree):
     def __init__(self, Ns):
         super(BucklingFailure, self).__init__()
 
-        n0 = np.zeros(Ns+1)
+        self.add('x', Array(np.zeros(Ns+1), desc='Euler Buckling failure in main spar from wire force'))
+        self.add('z', Array(np.zeros(Ns+1), desc='Euler Buckling failure in main spar from wire force'))
 
-        self.add('x', Array(n0, desc='Euler Buckling failure in main spar from wire force'))
-        self.add('z', Array(n0, desc='Euler Buckling failure in main spar from wire force'))
-
-        self.add('torsion', Array(n0, desc='Torsional Buckling failure'))
+        self.add('torsion', Array(np.zeros(Ns+1), desc='Torsional Buckling failure'))
 
 
 class Failure(VariableTree):
@@ -93,22 +85,18 @@ class MassProperties(Component):
 
         self.add('b',           Int(0, iotype='in', desc='number of blades'))
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        n0 = np.zeros(Ns)
-
-        self.add('mSpar',       Array(n0, iotype='in', desc='mass of spars'))
-        self.add('mChord',      Array(n0, iotype='in', desc='mass of chords'))
-        self.add('xCGChord',    Array(n0, iotype='in', desc='xCG of chords'))
-        self.add('xEA',         Array(n0, iotype='in', desc=''))
+        self.add('mSpar',       Array(np.zeros(Ns), iotype='in', desc='mass of spars'))
+        self.add('mChord',      Array(np.zeros(Ns), iotype='in', desc='mass of chords'))
+        self.add('xCGChord',    Array(np.zeros(Ns), iotype='in', desc='xCG of chords'))
+        self.add('xEA',         Array(np.zeros(Ns), iotype='in', desc=''))
 
         self.add('mQuad',       Float(0., iotype='in', desc=''))
 
         self.add('ycmax',       Float(0., iotype='in', desc=''))
 
-        self.add('yWire',       Array(a0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',       Float(0., iotype='in', desc='depth of wire attachement'))
-        self.add('tWire',       Float(0., iotype='in', desc='thickness of wire'))
+        self.add('yWire',       Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',       Float(0.,  iotype='in', desc='depth of wire attachement'))
+        self.add('tWire',       Float(0.,  iotype='in', desc='thickness of wire'))
 
         self.add('mElseRotor',  Float(0., iotype='in', desc=''))
         self.add('mElseCentre', Float(0., iotype='in', desc=''))
@@ -117,7 +105,7 @@ class MassProperties(Component):
         self.add('mPilot',      Float(0., iotype='in', desc='mass of pilot (kg)'))
 
         # outputs
-        self.add('xCG',         Array(n0, iotype='out', desc=''))
+        self.add('xCG',         Array(np.zeros(Ns), iotype='out', desc=''))
 
         self.add('Mtot',        Float(0., iotype='out', desc='total mass'))
         self.add('mCover',      Float(0., iotype='out', desc='mass of cover'))
@@ -151,44 +139,37 @@ class FEM(Component):
     def __init__(self, Ns):
         super(FEM, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-        k0 = np.zeros((Ns+2, Ns+2, Ns))
-        f0 = np.zeros((6*(Ns+1), 1))
-
         # inputs
         self.add('flags',    VarTree(Flags(), iotype='in'))
 
-        self.add('yN',       Array(y0, iotype='in', desc=''))
+        self.add('yN',       Array(np.zeros(Ns+1), iotype='in', desc=''))
 
-        self.add('EIx',      Array(n0, iotype='in', desc=''))
-        self.add('EIz',      Array(n0, iotype='in', desc=''))
-        self.add('EA',       Array(n0, iotype='in', desc=''))
-        self.add('GJ',       Array(n0, iotype='in', desc=''))
+        self.add('EIx',      Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('EIz',      Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('EA',       Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('GJ',       Array(np.zeros(Ns), iotype='in', desc=''))
 
-        self.add('cE',       Array(n0, iotype='in', desc='chord of each element'))
-        self.add('xEA',      Array(n0, iotype='in', desc=''))
+        self.add('cE',       Array(np.zeros(Ns), iotype='in', desc='chord of each element'))
+        self.add('xEA',      Array(np.zeros(Ns), iotype='in', desc=''))
 
         self.add('fblade',   VarTree(Fblade(Ns), iotype='in'))
 
-        self.add('mSpar',    Array(n0, iotype='in', desc='mass of spars'))
-        self.add('mChord',   Array(n0, iotype='in', desc='mass of chords'))
-        self.add('xCG',      Array(n0, iotype='in', desc=''))
+        self.add('mSpar',    Array(np.zeros(Ns), iotype='in', desc='mass of spars'))
+        self.add('mChord',   Array(np.zeros(Ns), iotype='in', desc='mass of chords'))
+        self.add('xCG',      Array(np.zeros(Ns), iotype='in', desc=''))
 
-        self.add('yWire',    Array(a0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',    Float(0., iotype='in', desc='depth of wire attachment'))
-        self.add('TWire',    Array(a0, iotype='in', desc=''))
+        self.add('yWire',    Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',    Float(0.,  iotype='in', desc='depth of wire attachment'))
+        self.add('TWire',    Array([0], iotype='in', desc=''))
 
         self.add('presLoad', VarTree(PrescribedLoad(), iotype='in'))
 
         # outputs
-        self.add('k', Array(k0, iotype='out', desc='local elastic stiffness matrix'))
-        self.add('K', Array(k0, iotype='out', desc='global stiffness matrix'))
+        self.add('k', Array(np.zeros((Ns+2, Ns+2, Ns)), iotype='out', desc='local elastic stiffness matrix'))
+        self.add('K', Array(np.zeros((Ns+2, Ns+2, Ns)), iotype='out', desc='global stiffness matrix'))
 
-        self.add('F', Array(f0, iotype='out', desc='global force vector'))
-        self.add('q', Array(f0, iotype='out', desc='deformation'))
+        self.add('F', Array(np.zeros((6*(Ns+1), 1)), iotype='out', desc='global force vector'))
+        self.add('q', Array(np.zeros((6*(Ns+1), 1)), iotype='out', desc='deformation'))
 
     def execute(self):
         # short aliases
@@ -404,25 +385,17 @@ class Strains(Component):
     def __init__(self, Ns):
         super(Strains, self).__init__()
 
-        # initial values required to size arrays
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-        k0 = np.zeros((Ns+2, Ns+2, Ns))
-        f0 = np.zeros((6*(Ns+1), 1))
-        i0 = np.zeros((6, Ns+1))
-
         # inputs
-        self.add('yN', Array(y0, iotype='in', desc=''))
+        self.add('yN', Array(np.zeros(Ns+1), iotype='in', desc=''))
+        self.add('d',  Array(np.zeros(Ns),   iotype='in', desc=''))
 
-        self.add('d',  Array(n0, iotype='in', desc=''))
+        self.add('k',  Array(np.zeros((Ns+2, Ns+2, Ns)), iotype='in', desc='Local elastic stiffness matrix'))
 
-        self.add('k',  Array(k0, iotype='in', desc='Local elastic stiffness matrix'))
-
-        self.add('F',  Array(f0, iotype='in', desc='global force vector'))
-        self.add('q',  Array(f0, iotype='in', desc='deformation'))
+        self.add('F',  Array(np.zeros((6*(Ns+1), 1)), iotype='in', desc='global force vector'))
+        self.add('q',  Array(np.zeros((6*(Ns+1), 1)), iotype='in', desc='deformation'))
 
         # outputs
-        self.add('Finternal', Array(i0, iotype='out', desc='internal forces'))
+        self.add('Finternal', Array(np.zeros((6, Ns+1)), iotype='out', desc='internal forces'))
 
         self.add('strain',    VarTree(Strain(Ns), iotype='out', desc='strains'))
 
@@ -535,48 +508,47 @@ class Failures(Component):
     def __init__(self, Ns):
         super(Failures, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-        i0 = np.zeros((6, Ns+1))
-
         # inputs
         self.add('flags',        VarTree(Flags(), iotype='in'))
 
-        self.add('yN',           Array(y0, iotype='in', desc=''))
+        self.add('yN',           Array(np.zeros(Ns+1), iotype='in', desc=''))
 
-        self.add('Finternal',    Array(i0, iotype='in', desc=''))
+        self.add('Finternal',    Array(np.zeros((6, Ns+1)), iotype='in', desc=''))
+
         self.add('strain',       VarTree(Strain(Ns), iotype='in'))
 
-        self.add('d',            Array(n0, iotype='in', desc=''))
-        self.add('theta',        Array(n0, iotype='in', desc=''))
-        self.add('nTube',        Array(n0, iotype='in', desc=''))
-        self.add('nCap',         Array(n0, iotype='in', desc=''))
+        self.add('d',            Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('theta',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('nTube',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('nCap',         Array(np.zeros(Ns), iotype='in', desc=''))
 
-        self.add('yWire',        Array(a0, iotype='in', desc=''))
-        self.add('zWire',        Float(0., iotype='in', desc=''))
-        self.add('EIxJ',         Array(n0, iotype='in', desc=''))
-        self.add('EIzJ',         Array(n0, iotype='in', desc=''))
+        self.add('yWire',        Array([0], iotype='in', desc=''))
+        self.add('zWire',        Float(0.,  iotype='in', desc=''))
 
-        self.add('lBiscuit',     Array(n0, iotype='in', desc=''))
+        self.add('EIxJ',         Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('EIzJ',         Array(np.zeros(Ns), iotype='in', desc=''))
+
+        self.add('lBiscuit',     Array(np.zeros(Ns), iotype='in', desc=''))
+
         self.add('dQuad',        Float(0., iotype='in', desc=''))
         self.add('thetaQuad',    Float(0., iotype='in', desc=''))
         self.add('nTubeQuad',    Float(0., iotype='in', desc=''))
         self.add('lBiscuitQuad', Float(0., iotype='in', desc=''))
         self.add('RQuad',        Float(0., iotype='in', desc=''))
         self.add('hQuad',        Float(0., iotype='in', desc=''))
-        self.add('EIQuad',       Array(n0, iotype='in', desc=''))
-        self.add('GJQuad',       Array(n0, iotype='in', desc=''))
-        self.add('tWire',        Float(0., iotype='in', desc=''))
-        self.add('TWire',        Array(a0, iotype='in', desc=''))
-        self.add('TEtension',    Float(0., iotype='in', desc=''))
+
+        self.add('EIQuad',       Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('GJQuad',       Array(np.zeros(Ns), iotype='in', desc=''))
+
+        self.add('tWire',        Float(0.,  iotype='in', desc=''))
+        self.add('TWire',        Array([0], iotype='in', desc=''))
+        self.add('TEtension',    Float(0.,  iotype='in', desc=''))
 
         # all this to get TQuad... maybe should be split out
-        self.add('b',            Int(0,    iotype='in', desc='number of blades'))
+        self.add('b',            Int(0, iotype='in', desc='number of blades'))
         self.add('fblade',       VarTree(Fblade(Ns), iotype='in'))
-        self.add('mSpar',        Array(n0, iotype='in', desc='mass of spars'))
-        self.add('mChord',       Array(n0, iotype='in', desc='mass of chords'))
+        self.add('mSpar',        Array(np.zeros(Ns), iotype='in', desc='mass of spars'))
+        self.add('mChord',       Array(np.zeros(Ns), iotype='in', desc='mass of chords'))
         self.add('mElseRotor',   Float(0., iotype='in', desc=''))
 
         # outputs
@@ -937,30 +909,26 @@ class Structures(Assembly):
     def __init__(self, Ns):
         super(Structures, self).__init__()
 
-        # initial values required to size arrays
-        a0 = np.zeros(1)
-        y0 = np.zeros(Ns+1)
-        n0 = np.zeros(Ns)
-
         # flags
         self.add('flags',        VarTree(Flags(), iotype='in'))
 
         # inputs for spars
-        self.add('yN',           Array(y0, iotype='in', desc='node locations for each element along the span'))
-        self.add('d',            Array(n0, iotype='in', desc='spar diameter'))
-        self.add('theta',        Array(n0, iotype='in', desc='wrap angle'))
-        self.add('nTube',        Array(n0, iotype='in', desc='number of tube layers'))
-        self.add('nCap',         Array(n0, iotype='in', desc='number of cap strips'))
-        self.add('lBiscuit',     Array(n0, iotype='in', desc='unsupported biscuit length'))
+        self.add('yN',           Array(np.zeros(Ns+1), iotype='in', desc='node locations for each element along the span'))
+        self.add('d',            Array(np.zeros(Ns), iotype='in', desc='spar diameter'))
+        self.add('theta',        Array(np.zeros(Ns), iotype='in', desc='wrap angle'))
+        self.add('nTube',        Array(np.zeros(Ns), iotype='in', desc='number of tube layers'))
+        self.add('nCap',         Array(np.zeros(Ns), iotype='in', desc='number of cap strips'))
+        self.add('lBiscuit',     Array(np.zeros(Ns), iotype='in', desc='unsupported biscuit length'))
 
         # joint properties
         self.add('Jprop',        VarTree(JointProperties(), iotype='in'))
 
         # inputs for chord
         self.add('b',            Int(0,    iotype='in', desc='number of blades'))
-        self.add('cE',           Array(n0, iotype='in', desc='chord of each element'))
-        self.add('xEA',          Array(n0, iotype='in', desc=''))
-        self.add('xtU',          Array(n0, iotype='in', desc=''))
+
+        self.add('cE',           Array(np.zeros(Ns), iotype='in', desc='chord of each element'))
+        self.add('xEA',          Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtU',          Array(np.zeros(Ns), iotype='in', desc=''))
 
         # inputs for quad
         self.add('dQuad',        Float(0., iotype='in', desc='diameter of quad rotor struts'))
@@ -974,11 +942,11 @@ class Structures(Assembly):
         self.add('ycmax',        Float(0., iotype='in', desc=''))
 
         # inputs for wire
-        self.add('yWire',        Array(a0, iotype='in', desc='location of wire attachment along span'))
-        self.add('zWire',        Float(0., iotype='in', desc='depth of wire attachement'))
-        self.add('tWire',        Float(0., iotype='in', desc='thickness of wire'))
-        self.add('TWire',        Array(a0, iotype='in', desc=''))
-        self.add('TEtension',    Float(0., iotype='in', desc=''))
+        self.add('yWire',        Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',        Float(0.,  iotype='in', desc='depth of wire attachement'))
+        self.add('tWire',        Float(0.,  iotype='in', desc='thickness of wire'))
+        self.add('TWire',        Array([0], iotype='in', desc=''))
+        self.add('TEtension',    Float(0.,  iotype='in', desc=''))
 
         # inputs for 'other stuff'
         self.add('mElseRotor',   Float(0., iotype='in', desc=''))
