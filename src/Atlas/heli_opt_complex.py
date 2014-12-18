@@ -17,8 +17,11 @@ from Atlas import AtlasConfiguration, AeroStructural
 class ConfigOpt(AtlasConfiguration):
     """ Atlas configuration for single point optimization """
 
-    # inputs for optimizer
-    Omega_opt = Float(iotype='in', desc='rotor angular velocity')
+    def __init__(self, Ns):
+        super(ConfigOpt, self).__init__(Ns)
+
+        # inputs for optimizer
+        self.add('Omega_opt', Float(0., iotype='in', desc='rotor angular velocity'))
 
     def execute(self):
         super(ConfigOpt, self).execute()
@@ -30,11 +33,11 @@ class ConfigOpt(AtlasConfiguration):
 class AeroStructuralOpt(AeroStructural):
     """ AeroStructural assembly for single point optimization """
 
-    def configure(self):
-        super(AeroStructuralOpt, self).configure()
+    def __init__(self, Ns):
+        super(AeroStructuralOpt, self).__init__(Ns)
 
         # replace config with optimizer driven config
-        self.replace('config', ConfigOpt())
+        self.replace('config', ConfigOpt(Ns))
 
         # create passthroughs for variables used by the optimizer
         self.create_passthrough('config.Omega_opt')
@@ -46,7 +49,9 @@ class AeroStructuralOpt(AeroStructural):
 class HeliOpt(Assembly):
     """ Single point aero-structural optimization """
 
-    def configure(self):
+    def __init__(self, Ns):
+        super(HeliOpt, self).__init__()
+
         # add an optimizer and an AeroStructural assembly
         if pyopt_driver and 'SNOPT' in pyopt_driver._check_imports():
             self.add("driver", pyopt_driver.pyOptDriver())
@@ -58,7 +63,7 @@ class HeliOpt(Assembly):
             print 'SNOPT not available, using SLSQP'
             self.add('driver', SLSQPdriver())
 
-        self.add('aso', AeroStructuralOpt())
+        self.add('aso', AeroStructuralOpt(Ns))
 
         # objective: minimize total power
         self.driver.add_objective('aso.Ptot')
