@@ -62,7 +62,7 @@ class HeliOpt(Assembly):
         # the whole model as a single entity to finite difference it and force
         # the system decomposition to put all of it into an opaque system.
         #
-        # Full-model FD is preferable anyway because:
+        # Full-model FD is preferable because:
         # 1. There are no derivatives defined for any comps
         # 2. There are a lot of interior connections that would likely make
         #    it much slower if you allow openmdao to finite difference the
