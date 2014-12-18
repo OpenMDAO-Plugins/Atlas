@@ -304,15 +304,8 @@ class HeliOptM(Assembly):
         super(HeliOptM, self).__init__()
 
         # add an optimizer and a multi-point AeroStructural assembly
-        if pyopt_driver and 'SNOPT' in pyopt_driver._check_imports():
-            self.add("driver", pyopt_driver.pyOptDriver())
-            self.driver.optimizer = "SNOPT"
-            self.driver.options = {
-                # any changes to default SNOPT options?
-            }
-        else:
-            print 'SNOPT not available, using SLSQP'
-            self.add('driver', SLSQPdriver())
+        self.add('driver', SLSQPdriver())
+        self.add('mp', Multipoint(Ns))
 
         # Set force_fd to True. This will force the derivative system to treat
         # the whole model as a single entity to finite difference it and force
@@ -324,8 +317,6 @@ class HeliOptM(Assembly):
         #    it much slower if you allow openmdao to finite difference the
         #    subassemblies like it normally does.
         self.driver.gradient_options.force_fd = True
-
-        self.add('mp', Multipoint(Ns))
 
         self.mp.alt_low   = 0.5       # low altitude
         self.mp.alt_high  = 3.5       # high altitude

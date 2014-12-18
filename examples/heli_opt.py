@@ -51,17 +51,23 @@ class HeliOpt(Assembly):
         super(HeliOpt, self).__init__()
 
         # add an optimizer and an AeroStructural assembly
-        if pyopt_driver and 'SNOPT' in pyopt_driver._check_imports():
-            self.add("driver", pyopt_driver.pyOptDriver())
-            self.driver.optimizer = "SNOPT"
-            self.driver.options = {
-                # any changes to default SNOPT options?
-            }
-        else:
-            print 'SNOPT not available, using SLSQP'
-            self.add('driver', SLSQPdriver())
-
+        self.add('driver', SLSQPdriver())
         self.add('aso', AeroStructuralOpt(Ns))
+
+        # add an optimizer and a multi-point AeroStructural assembly
+        self.add('driver', SLSQPdriver())
+        self.add('mp', Multipoint(Ns))
+
+        # Set force_fd to True. This will force the derivative system to treat
+        # the whole model as a single entity to finite difference it and force
+        # the system decomposition to put all of it into an opaque system.
+        #
+        # Full-model FD is preferable anyway because:
+        # 1. There are no derivatives defined for any comps
+        # 2. There are a lot of interior connections that would likely make
+        #    it much slower if you allow openmdao to finite difference the
+        #    subassemblies like it normally does.
+        self.driver.gradient_options.force_fd = True
 
         # objective: minimize total power
         self.driver.add_objective('aso.Ptot')
