@@ -9,50 +9,59 @@ from openmdao.main.api import Component, VariableTree
 
 
 class Fblade(VariableTree):
-    Fx = Array(units='N/m', desc='drag axis')
-    Fz = Array(units='N/m', desc='lift axis')
-    My = Array(desc='')
-    Q  = Array(desc='Torque')
-    P  = Array(desc='Power')
-    Pi = Array(desc='')
-    Pp = Array(desc='')
+
+    def __init__(self, Ns):
+        super(Fblade, self).__init__()
+
+        self.add('Fx', Array(np.zeros(Ns), desc='drag axis', units='N/m'))
+        self.add('Fz', Array(np.zeros(Ns), desc='lift axis', units='N/m'))
+        self.add('My', Array(np.zeros(Ns), desc=''))
+        self.add('Q',  Array(np.zeros(Ns), desc='Torque'))
+        self.add('P',  Array(np.zeros(Ns), desc='Power'))
+        self.add('Pi', Array(np.zeros(Ns), desc=''))
+        self.add('Pp', Array(np.zeros(Ns), desc=''))
 
 
 class LiftDrag(Component):
+    """ Computes lift and drag
     """
-    Computes lift and drag
-    """
 
-    Ns  = Int(iotype="in", desc="number of Elements")
-    yN  = Array(iotype="in", desc='node locations')
+    def __init__(self, Ns):
+        super(LiftDrag, self).__init__()
 
-    rho   = Float(iotype='in', desc='air density')
-    visc  = Float(iotype='in', desc='air viscosity')
-    vw    = Float(iotype='in', desc='wind')
-    vc    = Float(iotype='in', desc='vertical velocity')
-    Omega = Float(iotype='in', desc='Rotor angular velocity')
+        # inputs
+        self.add('Ns',        Int(0, iotype="in", desc="number of Elements"))
 
-    r  = Array(iotype='in', desc='radial location of each element')
-    vi = Array(iotype='in', desc='induced downwash distribution')
-    c  = Array(iotype='in', desc='chord distribution')
-    Cl = Array(iotype='in', desc='lift coefficient distribution')
-    dr = Array(iotype='in', desc='length of each element')
-    d  = Array(iotype='in', desc='spar diameter distribution')
+        self.add('yN',        Array(np.zeros(Ns+1), iotype="in", desc='node locations'))
 
-    yWire     = Array(iotype='in', desc='location of wire attachment along span')
-    zWire     = Float(iotype='in', desc='depth of wire attachement')
-    tWire     = Float(iotype='in', desc='thickness of wire')
-    chordFrac = Array(iotype='in', desc='')
+        self.add('rho',       Float(0., iotype='in', desc='air density'))
+        self.add('visc',      Float(0., iotype='in', desc='air viscosity'))
+        self.add('vw',        Float(0., iotype='in', desc='wind'))
+        self.add('vc',        Float(0., iotype='in', desc='vertical velocity'))
+        self.add('Omega',     Float(0., iotype='in', desc='Rotor angular velocity'))
 
-    Cm  = Array(iotype='in', desc='')
-    xtU = Array(iotype='in', desc='fraction of laminar flow on the upper surface')
-    xtL = Array(iotype='in', desc='fraction of laminar flow on the lower surface')
+        self.add('r',         Array(np.zeros(Ns), iotype='in', desc='radial location of each element'))
+        self.add('vi',        Array(np.zeros(Ns), iotype='in', desc='induced downwash distribution'))
+        self.add('c',         Array(np.zeros(Ns), iotype='in', desc='chord distribution'))
+        self.add('Cl',        Array(np.zeros(Ns), iotype='in', desc='lift coefficient distribution'))
+        self.add('dr',        Array(np.zeros(Ns), iotype='in', desc='length of each element'))
+        self.add('d',         Array(np.zeros(Ns), iotype='in', desc='spar diameter distribution'))
 
-    # outputs
-    Re  = Array(iotype='out', desc='Reynolds number')
-    Cd  = Array(iotype='out', desc='drag coefficients')
-    phi = Array(iotype='out', desc='')
-    Fblade = VarTree(Fblade(), iotype='out', desc='')
+        self.add('yWire',     Array([0], iotype='in', desc='location of wire attachment along span'))
+        self.add('zWire',     Float(0.,  iotype='in', desc='depth of wire attachement'))
+        self.add('tWire',     Float(0.,  iotype='in', desc='thickness of wire'))
+
+        self.add('chordFrac', Array(np.zeros(Ns), iotype='in', desc=''))
+
+        self.add('Cm',        Array(np.zeros(Ns), iotype='in', desc=''))
+        self.add('xtU',       Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the upper surface'))
+        self.add('xtL',       Array(np.zeros(Ns), iotype='in', desc='fraction of laminar flow on the lower surface'))
+
+        # outputs
+        self.add('Re',        Array(np.zeros(Ns), iotype='out', desc='Reynolds number'))
+        self.add('Cd',        Array(np.zeros(Ns), iotype='out', desc='drag coefficients'))
+        self.add('phi',       Array(np.zeros(Ns), iotype='out', desc=''))
+        self.add('Fblade',    VarTree(Fblade(Ns), iotype='out', desc=''))
 
     def execute(self):
         # Pre-allocate output arrays

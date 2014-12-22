@@ -21,7 +21,7 @@ class Test_HeliCalc(unittest.TestCase):
     def test_HeliCalc(self):
         """ Test the HeliCalc assembly
         """
-        asm = set_as_top(HeliCalc())
+        asm = set_as_top(HeliCalc(10))
 
         # populate inputs
         path = os.path.join(os.path.dirname(__file__), 'HeliCalc.mat')

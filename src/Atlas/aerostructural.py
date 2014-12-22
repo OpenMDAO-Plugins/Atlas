@@ -12,26 +12,39 @@ from openmdao.util.log import enable_trace  # , disable_trace
 
 
 class Results(Component):
-    # inputs
-    b          = Int(iotype='in', desc='number of blades')
-    Ns         = Int(iotype='in', desc='number of elements')
-    yN         = Array(iotype='in', desc='node locations')
-    yE         = Array(iotype='in', desc='')
-    cE         = Array(iotype='in', desc='chord of each element')
-    Cl         = Array(iotype='in', desc='lift coefficient distribution')
-    q          = Array(iotype='in', desc='deformation')
-    phi        = Array(iotype='in', desc='')
-    collective = Float(iotype='in', desc='collective angle in radians')
-    fblade     = VarTree(Fblade(), iotype='in')
-    Mtot       = Float(0.0, iotype='in', desc='total mass')
+    """ collect/calculate results from aerostructural computation
+    """
 
-    # outputs
-    di         = Array(iotype='out', desc='dihedral angle')
-    alphaJig   = Array(iotype='out', desc='aerodynamic jig angle')
-    Ttot       = Float(iotype='out', desc='total thrust')
-    Qtot       = Float(iotype='out', desc='total torque')
-    MomRot     = Float(iotype='out', desc='total moment')
-    Ptot       = Float(iotype='out', desc='total powers')
+    def __init__(self, Ns):
+        super(Results, self).__init__()
+
+        # inputs
+        self.add('b',          Int(0, iotype='in', desc='number of blades'))
+        self.add('Ns',         Int(0, iotype='in', desc='number of elements'))
+
+        self.add('yN',         Array(np.zeros(Ns+1), iotype='in', desc='node locations'))
+        self.add('yE',         Array(np.zeros(Ns),   iotype='in', desc=''))
+        self.add('cE',         Array(np.zeros(Ns),   iotype='in', desc='chord of each element'))
+        self.add('Cl',         Array(np.zeros(Ns),   iotype='in', desc='lift coefficient distribution'))
+
+        self.add('q',          Array(np.zeros((6*(Ns+1), 1)), iotype='in', desc='deformation'))
+
+        self.add('phi',        Array(np.zeros(Ns), iotype='in', desc=''))
+
+        self.add('collective', Float(0., iotype='in', desc='collective angle in radians'))
+
+        self.add('fblade',     VarTree(Fblade(Ns), iotype='in'))
+
+        self.add('Mtot',       Float(0., iotype='in', desc='total mass'))
+
+        # outputs
+        self.add('di',         Array(np.zeros(Ns), iotype='out', desc='dihedral angle'))
+        self.add('alphaJig',   Array(np.zeros(Ns), iotype='out', desc='aerodynamic jig angle'))
+
+        self.add('Ttot',       Float(0., iotype='out', desc='total thrust'))
+        self.add('Qtot',       Float(0., iotype='out', desc='total torque'))
+        self.add('MomRot',     Float(0., iotype='out', desc='total moment'))
+        self.add('Ptot',       Float(0., iotype='out', desc='total powers'))
 
     def execute(self):
         # Compute aerodynamic jig angle
@@ -65,17 +78,19 @@ class Results(Component):
 
 
 class Switch(Component):
-    """ select the appropriate source for blade force data """
+    """ select the appropriate source for blade force data
+    """
 
-    # inputs
-    fblade_initial  = VarTree(Fblade(), iotype='in')
-    fblade_updated  = VarTree(Fblade(), iotype='in')
-
-    # outputs
-    fblade          = VarTree(Fblade(), iotype='out')
-
-    def __init__(self):
+    def __init__(self, Ns):
         super(Switch, self).__init__()
+
+        # inputs
+        self.add('fblade_initial', VarTree(Fblade(Ns), iotype='in'))
+        self.add('fblade_updated', VarTree(Fblade(Ns), iotype='in'))
+
+        # outputs
+        self.add('fblade',          VarTree(Fblade(Ns), iotype='out'))
+
         self.initial = True
         self.force_execute = True
 
@@ -88,21 +103,23 @@ class Switch(Component):
 
 
 class AeroStructural(Assembly):
-    """
-    Performs an aerodynamic and structural computation on a single
-    configuration given the full set of design parameters. The aerodynamic
-    computation returns the thrust, torque, power, and induced velocity. The
-    structural computation first computes the mass of the helicopter based on
-    the structural description of the spars and chord lengths. It then
-    computes the deformation of the spars, the strains, and the resulting
-    factor of safety for each of the failure modes.
+    """ Performs an aerodynamic and structural computation on a single
+        configuration given the full set of design parameters. The aerodynamic
+        computation returns the thrust, torque, power, and induced velocity. The
+        structural computation first computes the mass of the helicopter based on
+        the structural description of the spars and chord lengths. It then
+        computes the deformation of the spars, the strains, and the resulting
+        factor of safety for each of the failure modes.
     """
 
-    def configure(self):
-        self.add('config', AtlasConfiguration())
+    def __init__(self, Ns):
+        super(AeroStructural, self).__init__()
+
+        # configuration
+        self.add('config', AtlasConfiguration(Ns))
 
         # Take parameterized properties and get property for each element
-        self.add('discrete', DiscretizeProperties())
+        self.add('discrete', DiscretizeProperties(Ns))
         self.connect('config.Ns',           'discrete.Ns')
         self.connect('config.ycmax',        'discrete.ycmax')
         self.connect('config.R',            'discrete.R')
@@ -122,7 +139,7 @@ class AeroStructural(Assembly):
 
         # First run Aero calc with simple blade-element model. Lift is
         # accurate with this simple model since Cl is pre-defined
-        self.add('aero', Aero())
+        self.add('aero', Aero(Ns))
         self.connect('config.b',            'aero.b')
         self.connect('config.R',            'aero.R')
         self.connect('config.Ns',           'aero.Ns')
@@ -147,7 +164,7 @@ class AeroStructural(Assembly):
         self.connect('discrete.xtL',        'aero.xtL')
 
         # Then run Aero calc with more accurate Vortex method
-        self.add('aero2', Aero2())
+        self.add('aero2', Aero2(Ns))
         self.connect('config.b',            'aero2.b')
         self.connect('config.R',            'aero2.R')
         self.connect('config.Ns',           'aero2.Ns')
@@ -173,7 +190,7 @@ class AeroStructural(Assembly):
         self.connect('config.anhedral',     'aero2.anhedral')
 
         # Structures calc
-        self.add('struc', Structures())
+        self.add('struc', Structures(Ns))
         self.connect('config.flags',        'struc.flags')
         self.connect('discrete.yN',         'struc.yN')
         self.connect('discrete.d',          'struc.d')
@@ -206,7 +223,7 @@ class AeroStructural(Assembly):
         self.connect('config.presLoad',     'struc.presLoad')
 
         # converge aero and structures via fixed point iteration
-        self.add('switch', Switch())
+        self.add('switch', Switch(Ns))
         self.connect('aero.Fblade',         'switch.fblade_initial')
         self.connect('aero2.Fblade',        'switch.fblade_updated')
         self.connect('switch.fblade',       'struc.fblade')
@@ -223,7 +240,7 @@ class AeroStructural(Assembly):
         self.aero2.q = np.zeros((q_dim, 1))
 
         # calculate results
-        self.add('results', Results())
+        self.add('results', Results(Ns))
         self.connect('config.b',            'results.b')
         self.connect('config.Ns',           'results.Ns')
         self.connect('discrete.yN',         'results.yN')
@@ -246,7 +263,7 @@ class AeroStructural(Assembly):
 if __name__ == "__main__":
     # enable_trace()
 
-    top = AeroStructural()
+    top = AeroStructural(10)
     top.run()
 
     print 'AeroStructural Results'

@@ -21,7 +21,7 @@ class Test_AeroStructural(unittest.TestCase):
     def test_AeroStructural(self):
         """ Test the AeroStructural assembly
         """
-        asm = set_as_top(AeroStructural())
+        asm = set_as_top(AeroStructural(10))
 
         # populate inputs
         path = os.path.join(os.path.dirname(__file__), 'HeliCalc.mat')

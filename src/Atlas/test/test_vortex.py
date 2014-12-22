@@ -19,7 +19,7 @@ from Atlas import %s as VortexRing
 path = os.path.join(os.path.dirname(Atlas.__file__), 'test/vortex.mat')
 data = loadmat(path, struct_as_record=True, mat_dtype=True)
 
-comp = VortexRing()
+comp = VortexRing(10)
 
 comp.b        = int(data['b'][0][0])
 comp.yN       = data['yN'].flatten()

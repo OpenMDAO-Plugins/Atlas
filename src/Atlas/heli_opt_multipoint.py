@@ -12,121 +12,121 @@ except ImportError:
 
 from openmdao.util.log import enable_trace, disable_trace
 
+import numpy as np
 from numpy import pi
 
 from Atlas import AtlasConfiguration, AeroStructural
 
 
 class ConfigLow(AtlasConfiguration):
-    """ Atlas configuration for low altitude """
+    """ Atlas configuration for optimization of low altitude case
+    """
 
-    Omega_opt = Float(iotype='in', desc='rotor angular velocity')
+    def __init__(self, Ns):
+        super(ConfigLow, self).__init__(Ns)
 
-    H_opt     = Float(iotype='in', desc='height of aircraft')
+        # add optimizer controlled inputs
+        self.add('Omega_opt', Float(0., iotype='in', desc='rotor angular velocity'))
+        self.add('H_opt',     Float(0., iotype='in', desc='height of aircraft'))
 
     def execute(self):
         super(ConfigLow, self).execute()
 
         # use optimizer provided values
         self.Omega = self.Omega_opt
-
         self.h     = self.H_opt + self.zWire
 
 
 class AeroStructuralLow(AeroStructural):
-    """ AeroStructural assembly for low altitude case in multipoint optimization """
+    """ AeroStructural assembly for low altitude case in multipoint optimization
+    """
 
-    def configure(self):
-        super(AeroStructuralLow, self).configure()
+    def __init__(self, Ns):
+        super(AeroStructuralLow, self).__init__(Ns)
 
         # replace config with optimizer driven config
-        self.replace('config', ConfigLow())
+        self.replace('config', ConfigLow(Ns))
 
         # create passthroughs for variables used by the optimizer
         self.create_passthrough('config.Omega_opt')
-
         self.create_passthrough('config.H_opt')
-
         self.create_passthrough('struc.Mtot')
         self.create_passthrough('results.Ttot')
         self.create_passthrough('results.Ptot')
 
 
 class ConfigHigh(AtlasConfiguration):
-    """ Atlas configuration for high altitude """
+    """ Atlas configuration for optimization of high altitude case
+    """
 
-    Omega_opt = Float(iotype='in', desc='rotor angular velocity')
+    def __init__(self, Ns):
+        super(ConfigHigh, self).__init__(Ns)
 
-    Cl0_opt   = Float(iotype='in')
-    Cl1_opt   = Float(iotype='in')
-
-    H_opt     = Float(iotype='in', desc='height of aircraft')
-
-    TWire_opt = Float(iotype='in', desc='')
+        # add optimizer controlled inputs
+        self.add('Omega_opt', Float(0., iotype='in', desc='rotor angular velocity'))
+        self.add('Cl0_opt',   Float(0., iotype='in', desc=''))
+        self.add('Cl1_opt',   Float(0., iotype='in', desc=''))
+        self.add('H_opt',     Float(0., iotype='in', desc='height of aircraft'))
+        self.add('TWire_opt', Float(0., iotype='in', desc=''))
 
     def execute(self):
         super(ConfigHigh, self).execute()
 
         # use optimizer provided values
         self.Omega = self.Omega_opt
-
         self.Cl[0] = self.Cl0_opt
         self.Cl[1] = self.Cl1_opt
-
-        self.h = self.H_opt + self.zWire
-
+        self.h     = self.H_opt + self.zWire
         self.TWire = [self.TWire_opt]
 
 
 class AeroStructuralHigh(AeroStructural):
-    """ AeroStructural assembly for high altitude case in multipoint optimization """
+    """ AeroStructural assembly for high altitude case in multipoint optimization
+    """
 
-    def configure(self):
-        super(AeroStructuralHigh, self).configure()
+    def __init__(self, Ns):
+        super(AeroStructuralHigh, self).__init__(Ns)
 
         # replace config with optimizer driven config
-        self.replace('config', ConfigHigh())
+        self.replace('config', ConfigHigh(Ns))
 
         # create passthroughs for variables used by the optimizer
         self.create_passthrough('config.Omega_opt')
         self.create_passthrough('config.Cl0_opt')
         self.create_passthrough('config.Cl1_opt')
-
         self.create_passthrough('config.H_opt')
         self.create_passthrough('config.TWire_opt')
-
         self.create_passthrough('struc.Mtot')
         self.create_passthrough('results.Ttot')
         self.create_passthrough('results.Ptot')
 
 
 class ConfigWind(AtlasConfiguration):
-    """ Atlas configuration for wind case """
+    """ Atlas configuration for optimization of wind case
+    """
 
-    Omega_opt  = Float(iotype='in', desc='rotor angular velocity')
-    OmegaRatio = Float(iotype='in')
+    def __init__(self, Ns):
+        super(ConfigWind, self).__init__(Ns)
 
-    Cl_opt     = Array(iotype='in')
+        # add optimizer controlled inputs
+        self.add('Omega_opt',  Float(0., iotype='in', desc='rotor angular velocity'))
+        self.add('OmegaRatio', Float(0., iotype='in', desc=''))
 
-    H_opt      = Float(iotype='in', desc='height of aircraft')
+        self.add('Cl_opt',     Array(np.zeros(Ns), iotype='in', desc=''))
 
-    TWire_opt  = Float(iotype='in', desc='')
-
-    vw_opt     = Float(iotype='in', desc='wind velocity')
+        self.add('H_opt',      Float(0., iotype='in', desc='height of aircraft'))
+        self.add('TWire_opt',  Float(0., iotype='in', desc=''))
+        self.add('vw_opt',     Float(0., iotype='in', desc='wind velocity'))
 
     def execute(self):
         super(ConfigWind, self).execute()
 
         # use optimizer provided values
         self.Omega = (self.Omega_opt**3 * self.OmegaRatio)**(1./3.)
-
-        self.Cl = self.Cl_opt
-
-        self.h = self.H_opt + self.zWire
-
+        self.Cl    = self.Cl_opt
+        self.h     = self.H_opt + self.zWire
         self.TWire = [self.TWire_opt]
-
-        self.vw = self.vw_opt
+        self.vw    = self.vw_opt
 
         # FIXME: the following two flags are ignored
         self.flags.FreeWake = 0  # momentum theory
@@ -134,13 +134,14 @@ class ConfigWind(AtlasConfiguration):
 
 
 class AeroStructuralWind(AeroStructural):
-    """ AeroStructural assembly for wind case in multipoint optimization """
+    """ AeroStructural assembly for wind case in multipoint optimization
+    """
 
-    def configure(self):
-        super(AeroStructuralWind, self).configure()
+    def __init__(self, Ns):
+        super(AeroStructuralWind, self).__init__(Ns)
 
         # replace config with optimizer driven config
-        self.replace('config', ConfigWind())
+        self.replace('config', ConfigWind(Ns))
 
         # create passthroughs for variables used by the optimizer
         self.create_passthrough('config.Omega_opt')
@@ -157,30 +158,32 @@ class AeroStructuralWind(AeroStructural):
 
 
 class ConfigGravity(AtlasConfiguration):
-    """ Atlas configuration for gravity case """
+    """ Atlas configuration for optimization of gravity case
+    """
 
-    Omega_opt  = Float(iotype='in', desc='rotor angular velocity')
-    OmegaRatio = Float(iotype='in')
+    def __init__(self, Ns):
+        super(ConfigGravity, self).__init__(Ns)
 
-    Cl_opt     = Array(iotype='in')
+        # add optimizer controlled inputs
+        self.add('Omega_opt',  Float(0., iotype='in', desc='rotor angular velocity'))
+        self.add('OmegaRatio', Float(0., iotype='in'))
 
-    H_opt      = Float(iotype='in', desc='height of aircraft')
+        self.add('Cl_opt',     Array(np.zeros(Ns), iotype='in'))
 
-    TWire_opt  = Float(iotype='in', desc='')
+        self.add('H_opt',      Float(0., iotype='in', desc='height of aircraft'))
+        self.add('TWire_opt',  Float(0., iotype='in', desc=''))
 
     def execute(self):
         super(ConfigGravity, self).execute()
 
         # use optimizer provided values
         self.Omega = (self.Omega_opt**3 * self.OmegaRatio)**(1./3.)
-
-        self.Cl = self.Cl_opt
-
-        self.h = self.H_opt + self.zWire
-
+        self.Cl    = self.Cl_opt
+        self.h     = self.H_opt + self.zWire
         self.TWire = [self.TWire_opt]
 
-        self.flags.Load     = 1  # gravity and wire forces only
+        # gravity and wire forces only
+        self.flags.Load = 1
 
         # FIXME: the following two flags are ignored
         self.flags.FreeWake = 0  # momentum theory
@@ -188,13 +191,14 @@ class ConfigGravity(AtlasConfiguration):
 
 
 class AeroStructuralGravity(AeroStructural):
-    """ AeroStructural assembly for gravity case in multipoint optimization """
+    """ AeroStructural assembly for gravity case in multipoint optimization
+    """
 
-    def configure(self):
-        super(AeroStructuralGravity, self).configure()
+    def __init__(self, Ns):
+        super(AeroStructuralGravity, self).__init__(Ns)
 
         # replace config with optimizer driven config
-        self.replace('config', ConfigGravity())
+        self.replace('config', ConfigGravity(Ns))
 
         # create passthroughs for variables used by the optimizer
         self.create_passthrough('config.Omega_opt')
@@ -219,33 +223,35 @@ class Multipoint(Assembly):
             gravity only
     """
 
-    # configuration inputs
-    alt_low    = Float(iotype='in', desc='low altitude')
-    alt_high   = Float(iotype='in', desc='high altitude')
-    alt_ratio  = Float(iotype='in', desc='proportion of time near ground')
+    def __init__(self, Ns):
+        super(Multipoint, self).__init__()
 
-    TWire_high = Float(iotype='in')
-    TWire_wind = Float(iotype='in')
-    TWire_grav = Float(iotype='in')
+        # configuration inputs
+        self.add('alt_low',    Float(0., iotype='in', desc='low altitude'))
+        self.add('alt_high',   Float(0., iotype='in', desc='high altitude'))
+        self.add('alt_ratio',  Float(0., iotype='in', desc='proportion of time near ground'))
 
-    OmegaRatio = Float(iotype='in')
+        self.add('TWire_high', Float(0., iotype='in', desc=''))
+        self.add('TWire_wind', Float(0., iotype='in', desc=''))
+        self.add('TWire_grav', Float(0., iotype='in', desc=''))
 
-    vw         = Float(iotype='in', desc='wind velocity')
+        self.add('OmegaRatio', Float(0., iotype='in', desc=''))
 
-    Cl_max     = Array(iotype='in')
+        self.add('vw',         Float(0., iotype='in', desc='wind velocity'))
 
-    # optimizer parameters
-    Omega_low  = Float(iotype='in', desc='rotor angular velocity, low altitude')
-    Omega_high = Float(iotype='in', desc='rotor angular velocity, high altitude')
-    Cl0_high   = Float(iotype='in')
-    Cl1_high   = Float(iotype='in')
+        self.add('Cl_max',     Array(np.zeros(Ns), iotype='in', desc=''))
 
-    # outputs
-    P          = Float(iotype='out', desc='')
+        # optimizer parameters
+        self.add('Omega_low',  Float(0., iotype='in', desc='rotor angular velocity, low altitude'))
+        self.add('Omega_high', Float(0., iotype='in', desc='rotor angular velocity, high altitude'))
+        self.add('Cl0_high',   Float(0., iotype='in', desc=''))
+        self.add('Cl1_high',   Float(0., iotype='in', desc=''))
 
-    def configure(self):
+        # outputs
+        self.add('P',          Float(0., iotype='out', desc=''))
+
         # low altitude
-        self.add('low', AeroStructuralLow())
+        self.add('low', AeroStructuralLow(Ns))
 
         self.connect('Omega_low', 'low.Omega_opt')
         self.connect('alt_low',   'low.H_opt')
@@ -255,7 +261,7 @@ class Multipoint(Assembly):
 
         # high altitude
         # need a different rotor speed and lift distribution at altitude
-        self.add('high', AeroStructuralHigh())
+        self.add('high', AeroStructuralHigh(Ns))
 
         self.connect('Omega_high', 'high.Omega_opt')
         self.connect('Cl0_high',   'high.Cl0_opt')
@@ -267,7 +273,7 @@ class Multipoint(Assembly):
         self.create_passthrough('high.Ttot', 'Ttot_high')
 
         # wind case
-        self.add('wind', AeroStructuralWind())
+        self.add('wind', AeroStructuralWind(Ns))
 
         self.connect('Omega_high', 'wind.Omega_opt')
         self.connect('OmegaRatio', 'wind.OmegaRatio')
@@ -277,7 +283,7 @@ class Multipoint(Assembly):
         self.connect('vw',         'wind.vw_opt')
 
         # gravity case
-        self.add('grav', AeroStructuralGravity())
+        self.add('grav', AeroStructuralGravity(Ns))
 
         self.connect('Omega_high', 'grav.Omega_opt')
         self.connect('OmegaRatio', 'grav.OmegaRatio')
@@ -294,33 +300,37 @@ class Multipoint(Assembly):
 class HeliOptM(Assembly):
     """ Multipoint aero-structural optimization """
 
-    def configure(self):
+    def __init__(self, Ns):
+        super(HeliOptM, self).__init__()
+
         # add an optimizer and a multi-point AeroStructural assembly
-        if pyopt_driver and 'SNOPT' in pyopt_driver._check_imports():
-            self.add("driver", pyopt_driver.pyOptDriver())
-            self.driver.optimizer = "SNOPT"
-            self.driver.options = {
-                # any changes to default SNOPT options?
-            }
-        else:
-            print 'SNOPT not available, using SLSQP'
-            self.add('driver', SLSQPdriver())
+        self.add('driver', SLSQPdriver())
+        self.add('mp', Multipoint(Ns))
 
-        self.add('mp', Multipoint())
+        # Set force_fd to True. This will force the derivative system to treat
+        # the whole model as a single entity to finite difference it and force
+        # the system decomposition to put all of it into an opaque system.
+        #
+        # Full-model FD is preferable because:
+        # 1. There are no derivatives defined for any comps
+        # 2. There are a lot of interior connections that would likely make
+        #    it much slower if you allow openmdao to finite difference the
+        #    subassemblies like it normally does.
+        self.driver.gradient_options.force_fd = True
 
-        self.mp.alt_low = 0.5         # low altitude
-        self.mp.alt_high = 3.5        # high altitude
+        self.mp.alt_low   = 0.5       # low altitude
+        self.mp.alt_high  = 3.5       # high altitude
         self.mp.alt_ratio = 35./60.   # proportion of time near ground
 
         self.mp.TWire_high = 900
         self.mp.TWire_wind = 2100
         self.mp.TWire_grav = 110
 
-        self.mp.OmegaRatio  = 2
+        self.mp.OmegaRatio = 2
 
         self.mp.vw = 0/3.6   # zero
 
-        self.mp.Cl_max = [1.4, 1.35, 1.55]    # max control
+        self.mp.Cl_max = [1.4, 1.35, 1.55, 0., 0., 0., 0., 0., 0., 0.]  # max control
 
         # objective: minimize total power
         self.driver.add_objective('mp.P')
@@ -376,7 +386,7 @@ class HeliOptM(Assembly):
 if __name__ == '__main__':
     # enable_trace()
 
-    opt = set_as_top(HeliOptM())
+    opt = set_as_top(HeliOptM(10))
 
     print 'Starting multipoint optimization at %s ...' % time.strftime('%X')
     time1 = time.time()

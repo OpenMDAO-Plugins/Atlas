@@ -17,8 +17,11 @@ from Atlas import AtlasConfiguration, AeroStructural
 class ConfigOpt(AtlasConfiguration):
     """ Atlas configuration for single point optimization """
 
-    # inputs for optimizer
-    Omega_opt = Float(iotype='in', desc='rotor angular velocity')
+    def __init__(self, Ns):
+        super(ConfigOpt, self).__init__(Ns)
+
+        # inputs for optimizer
+        self.add('Omega_opt', Float(0., iotype='in', desc='rotor angular velocity'))
 
     def execute(self):
         super(ConfigOpt, self).execute()
@@ -30,11 +33,11 @@ class ConfigOpt(AtlasConfiguration):
 class AeroStructuralOpt(AeroStructural):
     """ AeroStructural assembly for single point optimization """
 
-    def configure(self):
-        super(AeroStructuralOpt, self).configure()
+    def __init__(self, Ns):
+        super(AeroStructuralOpt, self).__init__(Ns)
 
         # replace config with optimizer driven config
-        self.replace('config', ConfigOpt())
+        self.replace('config', ConfigOpt(Ns))
 
         # create passthroughs for variables used by the optimizer
         self.create_passthrough('config.Omega_opt')
@@ -46,19 +49,23 @@ class AeroStructuralOpt(AeroStructural):
 class HeliOpt(Assembly):
     """ Single point aero-structural optimization """
 
-    def configure(self):
-        # add an optimizer and an AeroStructural assembly
-        if pyopt_driver and 'SNOPT' in pyopt_driver._check_imports():
-            self.add("driver", pyopt_driver.pyOptDriver())
-            self.driver.optimizer = "SNOPT"
-            self.driver.options = {
-                # any changes to default SNOPT options?
-            }
-        else:
-            print 'SNOPT not available, using SLSQP'
-            self.add('driver', SLSQPdriver())
+    def __init__(self, Ns):
+        super(HeliOpt, self).__init__()
 
-        self.add('aso', AeroStructuralOpt())
+        # add an optimizer and an AeroStructural assembly
+        self.add('driver', SLSQPdriver())
+        self.add('aso', AeroStructuralOpt(Ns))
+
+        # Set force_fd to True. This will force the derivative system to treat
+        # the whole model as a single entity to finite difference it and force
+        # the system decomposition to put all of it into an opaque system.
+        #
+        # Full-model FD is preferable because:
+        # 1. There are no derivatives defined for any comps
+        # 2. There are a lot of interior connections that would likely make
+        #    it much slower if you allow openmdao to finite difference the
+        #    subassemblies like it normally does.
+        self.driver.gradient_options.force_fd = True
 
         # objective: minimize total power
         self.driver.add_objective('aso.Ptot')
@@ -83,7 +90,7 @@ class HeliOpt(Assembly):
 
 
 if __name__ == '__main__':
-    opt = set_as_top(HeliOpt())
+    opt = set_as_top(HeliOpt(10))
     opt.driver.gradient_options.force_fd = True
     opt.driver.gradient_options.fd_step = 1e-3
     opt.driver.gradient_options.fd_form = "complex_step"

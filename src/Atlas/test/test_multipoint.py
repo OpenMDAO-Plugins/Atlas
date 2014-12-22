@@ -19,7 +19,7 @@ class Test_Multipoint(unittest.TestCase):
     def test_Multipoint(self):
         """ Test the MultiPoint assembly
         """
-        mp = set_as_top(Multipoint())
+        mp = set_as_top(Multipoint(10))
 
         # set inputs
         mp.alt_low   = 0.5       # low altitude
@@ -34,7 +34,7 @@ class Test_Multipoint(unittest.TestCase):
 
         mp.vw = 0/3.6
 
-        mp.Cl_max = [1.4, 1.35, 1.55]  # max control
+        mp.Cl_max = [1.4, 1.35, 1.55, 0., 0., 0., 0., 0., 0., 0.]  # max control
 
         mp.Omega_low  = 1.0512
         mp.Omega_high = 1.0771
@@ -67,10 +67,7 @@ class Test_Multipoint(unittest.TestCase):
     def test_HeliOptM(self):
         """ Test the multipoint optimization (HeliOptM) assembly
         """
-        # comment the following line to run this test
-        raise SkipTest('Test skipped to save execution time')
-
-        opt = set_as_top(HeliOptM())
+        opt = set_as_top(HeliOptM(10))
 
         # run
         opt.run()
@@ -80,8 +77,8 @@ class Test_Multipoint(unittest.TestCase):
         self.assertAlmostEquals(opt.mp.Omega_low,  1.0512, 2)
         self.assertAlmostEquals(opt.mp.Omega_high, 1.0771, 2)
 
-        self.assertAlmostEquals(0, opt.mp.Mtot_low*9.8-opt.mp.Ttot_low, 3)
-        self.assertAlmostEquals(0, opt.mp.Mtot_high*9.8-opt.mp.Ttot_high, 3)
+        self.assertAlmostEquals(0, opt.mp.Mtot_low*9.8-opt.mp.Ttot_low, 2)
+        self.assertAlmostEquals(0, opt.mp.Mtot_high*9.8-opt.mp.Ttot_high, 2)
 
 
 if __name__ == "__main__":
