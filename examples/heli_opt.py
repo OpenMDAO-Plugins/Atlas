@@ -54,10 +54,6 @@ class HeliOpt(Assembly):
         self.add('driver', SLSQPdriver())
         self.add('aso', AeroStructuralOpt(Ns))
 
-        # add an optimizer and a multi-point AeroStructural assembly
-        self.add('driver', SLSQPdriver())
-        self.add('mp', Multipoint(Ns))
-
         # Set force_fd to True. This will force the derivative system to treat
         # the whole model as a single entity to finite difference it and force
         # the system decomposition to put all of it into an opaque system.
