@@ -98,5 +98,5 @@ Package Metadata
 
 - **summary:** OpenMDAO implementation of the Aerovelo Atlas human-powered helicopter design problem
 
-- **version:** 0.1
+- **version:** 0.2
 
